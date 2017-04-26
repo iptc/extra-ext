@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>IPTC</title>
+    <meta charset="utf-8">
+    <meta name="description" content="Rules-based classification of text">
+    <meta name="robots" content="index, follow"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="author" content="Laaposto">
+
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700|Roboto+Slab:400,300,700&subset=latin,cyrillic-ext,greek-ext,greek,latin-ext,cyrillic'
+          rel='stylesheet' type='text/css'>
+
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/jquery.comiseo.daterangepicker.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+
+    <!--END CSS -->
+</head>
+<body>
+<a id="hamburger-icon" href="#" title="Menu">
+    <span class="line line-1"></span>
+    <span class="line line-2"></span>
+    <span class="line line-3"></span>
+</a>
+<div id="hamburger-menu">
+    <nav>
+        <a href="../taxonomies">Taxonomy Manager</a>
+        <a href="../editor">Rules Editor</a>
+        <a href="#">Documents Search Tool</a>
+        <a href="#">Document Tagging</a>
+    </nav>
+</div>
+<div id="overlay"></div>
+<div id="myModal" class="reveal-modal"></div>
+<div id="myModal_slugline" class="reveal-modal">
+    <div id="loading_slugline">Loading sluglines, please wait.....
+        <img class="loadimg" src="imgs/loading.gif" alt="loading.."/>
+    </div>
+    <div id="empty_slugline">Zero sluglines</div>
+    <div id="info_slugline"></div>
+    <div id="breadcrumb_wrapper">
+        <ul id="breadcrumb" class="breadcrumb"></ul>
+        <div id="buttons">
+            <div class="btn_material" id="done_section"><span>SET</span></div>
+            <div class="btn_material" id="clear_section"><span>CLEAR</span></div>
+            <div class="btn_material" id="clear_last"><span>CLEAR LAST</span></div>
+        </div>
+    </div>
+    <ul class="media_topic" id="tiles_slugline"></ul>
+    <div class="well_slugline">
+        <ul id="pagination_list_slugline" class="pagination-sm"></ul>
+    </div>
+    <a style="color: #333;z-index: 2" class="close-reveal-modal">&#215;</a>
+</div>
+<div id="slider">
+    <h1>EXTRA</h1>
+
+    <div class="nav-sidebar">
+        <span>QUERY</span>
+    </div>
+    <div id="ff-search">
+        <img class="icon-search" src="imgs/search-12.png" alt="search-icon">
+        <input id="query" name="q" type="text" size="40" placeholder="Search..." autocomplete="off">
+    </div>
+    <div class="nav-sidebar">
+        <span>FILTERS</span>
+    </div>
+    <div id="settings">
+        <ul class="accordion">
+            <li>
+                <a href="#" class="item active">
+                    <img src="imgs/corpus-16.png" alt="icon">
+                    <span class="text">CORPUS</span>
+                </a>
+                <ul class="inlist" id="languages">
+                    <li class="sub1" id="apa"><a href="#" class="activelan">apa</a></li>
+                    <li class="sub1" id="reuters"><a href="#">reuters</a></li>
+                </ul>
+            </li>
+            <!--<li>
+                <a href="#" class="item active">
+                    <img src="imgs/split-16.png" alt="icon">
+                    <span class="text" >SPLIT</span>
+                </a>
+                <ul class="inlist" id="split">
+                    <li class="sub2" id="train"><a href="#">Training Set (80%)</a></li>
+                    <li class="sub2" id="test"><a href="#">Test Set (20%)</a></li>
+                    <li class="sub2" id="all"><a href="#">All</a></li>
+                </ul>
+            </li>-->
+            <li>
+                <a href="#" class="item active">
+                    <img src="imgs/topics-16.png" alt="icon">
+                    <span class="text" data-lang="slider_settings_topics">MEDIA TOPICS</span>
+                </a>
+                <ul class="inlist" id="topics">
+                    <input id="topics_autocomplete" placeholder="Type a topic..." class="topics_autocomplete"/>
+
+                    <div class="radio">
+                        <input type="radio" id="radio01" name="radio" checked value="why:direct"/>
+                        <label for="radio01"><span></span>Direct Association</label>
+                    </div>
+                    <div class="radio">
+                        <input type="radio" id="radio02" name="radio" value="why:ancestor"/>
+                        <label for="radio02"><span></span>Ancestor Association</label>
+                    </div>
+                    <ul class="inlist" id="split">
+                        <li class="sub2" id="train"><a href="#">Training Set (80%)</a></li>
+                        <li class="sub2" id="test"><a href="#">Test Set (20%)</a></li>
+                        <li class="sub2" id="all"><a href="#">All</a></li>
+                    </ul>
+                </ul>
+            </li>
+            <li>
+                <a href="#" class="item active">
+                    <img src="imgs/sections-16.png" alt="icon">
+                    <span class="text" data-lang="slider_settings_date">SECTIONS</span>
+                </a>
+                <ul class="inlist" id="sections" style="text-align: center">
+                    <p class="slugline">Select slugline<img src="imgs/link-16.png"></p>
+                    <p id="slugline_param"></p>
+                </ul>
+            </li>
+            <li>
+                <a href="#" class="item active">
+                    <img src="imgs/date-16.png" alt="icon">
+                    <span class="text" data-lang="slider_settings_date">DATE</span>
+                </a>
+                <ul class="inlist" id="date" style="text-align: center">
+                    <input id="date_range">
+                </ul>
+            </li>
+        </ul>
+        <div class="btn_material" id="search_start"><span>SEARCH</span>
+        </div>
+    </div>
+</div>
+<div id="main">
+    <div id="loading">Loading articles, please wait.....
+        <img id="loadimg" src="imgs/loading.gif" alt="loading.."/>
+    </div>
+    <div id="empty">Zero articles</div>
+    <div id="info"></div>
+    <ul id="tiles"></ul>
+</div>
+<div class="well">
+    <ul id="pagination_list" class="pagination-sm"></ul>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="js/jquery.reveal.js"></script>
+<script src="js/jquery.twbsPagination.min.js"></script>
+<script src="js/moment.js"></script>
+<script src="js/jquery.comiseo.daterangepicker.js"></script>
+<script src="js/ajax_abort.js"></script>
+<script src="js/jquery.easy-autocomplete.js"></script>
+<script src="js/xml.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

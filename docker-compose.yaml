@@ -1,0 +1,59 @@
+version: '2'
+
+services:
+  #mongodb:
+  #  image: mongo:3.2.11
+  #  volumes:
+  #    - ./mongo_data:/data/db
+  #  restart: always
+  #  networks:
+  #    esnet:
+  #      aliases:
+  #        - mongodb
+
+  elasticsearch:
+    image: elasticsearch:5.2.0
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - /disk1_data/workspace/git/extra/esdata:/usr/share/elasticsearch/data
+    restart: always
+    environment:
+      http.host: 0.0.0.0
+      #transport.host: 160.40.50.207
+      #http.cors.enabled: "true"
+      #http.cors.allow-origin: "*"
+    networks:
+      esnet:
+        aliases:
+          - elasticsearch
+
+  ui:
+    build:
+      context: ui
+    ports:
+      - 5555:80
+    volumes:
+      - /disk1_data/workspace/git/extra/ui/html:/var/www/site
+    restart: always
+    networks:
+      esnet:
+        aliases:
+          - ui
+
+  searchapi:
+    build:
+      context: search-api
+    command: python3 api.py
+    ports:
+      - 5000:5000
+    restart: always
+    networks:
+      esnet:
+        aliases:
+          - searchapi
+
+networks:
+  esnet:
+    driver: bridge
