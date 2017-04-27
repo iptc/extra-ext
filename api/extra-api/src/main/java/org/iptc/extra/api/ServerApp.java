@@ -26,7 +26,7 @@ public class ServerApp {
         try {
         	Properties properties = getProperties(PROPS_FILE);
         	 
-        	String baseUri = properties.getProperty(ApplicationProperties.BASE_URI, "http://160.40.50.207:8888/extra/api");
+        	String baseUri = properties.getProperty(ApplicationProperties.BASE_URI, "http://0.0.0.0:8888/extra/api");
             
         	URI uri = URI.create(baseUri);
         	HttpServer server = GrizzlyHttpServerFactory.createHttpServer(uri, new Application(properties), false);

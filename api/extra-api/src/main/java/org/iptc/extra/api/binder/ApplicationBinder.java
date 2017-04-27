@@ -67,7 +67,8 @@ public class ApplicationBinder extends AbstractBinder {
         	bind(taxonomiesDAO).to(TaxonomiesDAO.class);
         	
         	String esHostname = properties.getProperty(ApplicationProperties.ES_HOST, "127.0.0.1");
-        	ElasticSearchHandler es = new ElasticSearchHandler(esHostname, 9200);
+        	int esPort = Integer.parseInt(properties.getProperty(ApplicationProperties.ES_PORT, "9200"));
+        	ElasticSearchHandler es = new ElasticSearchHandler(esHostname, esPort);
         	bind(es).to(ElasticSearchHandler.class);
       
         }

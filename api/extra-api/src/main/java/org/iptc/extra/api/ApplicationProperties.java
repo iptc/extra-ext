@@ -14,6 +14,8 @@ public final class ApplicationProperties {
 
     public static final String ES_HOST = "es.host";
     
+    public static final String ES_PORT = "es.port";
+    
     public static final String BASE_URI = "base.uri";
     
     
