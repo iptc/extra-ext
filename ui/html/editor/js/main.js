@@ -1130,6 +1130,7 @@ $('#stats_articles td').click(function () {
             },
             data: data,
             success: function (json) {
+                $('#result_articles').empty();
                 $('#ruleMatches').text(json.annotations.ruleMatches);
                 $('#topicOnlyMatches').text(json.annotations.topicOnlyMatches);
                 $('#topicMatches').text(json.annotations.topicMatches);
