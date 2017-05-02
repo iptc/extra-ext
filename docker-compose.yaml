@@ -29,6 +29,8 @@ services:
   searchapi:
     build:
       context: search-api
+    volumes:
+      - ./search-api:/api
     command: python3 api.py
     ports:
       - 5000:5000
