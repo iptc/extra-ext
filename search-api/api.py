@@ -93,7 +93,7 @@ class ArticleXML(Resource):
             filename += '.nml2.xml'
 
         response = {}
-        with open('./xml/' + corpus + '/' + filename, 'r') as f:
+        with open('xml/' + corpus + '/' + filename, 'r') as f:
             xml_content = f.read()
             response['xml'] = xml_content
 
