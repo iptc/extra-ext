@@ -55,7 +55,7 @@ services:
     build:
       context: ui
     ports:
-      - 5555:80
+      - 80:80
     volumes:
       - ./ui/html:/var/www/site
     restart: always
