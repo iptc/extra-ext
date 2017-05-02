@@ -18,10 +18,6 @@ delimiters = {'apa': '/', 'reuters': '-'}
 
 app = Flask(__name__, static_url_path='')
 
-app.config['BASIC_AUTH_USERNAME'] = 'extra'
-app.config['BASIC_AUTH_PASSWORD'] = '9x56kv4yd0hd819e'
-app.config['BASIC_AUTH_FORCE'] = True
-
 CORS(app, resources={'/api/*': {'origins': '*'}})
 api = Api(app, prefix='/api')
 
@@ -97,7 +93,7 @@ class ArticleXML(Resource):
             filename += '.nml2.xml'
 
         response = {}
-        with open('/home/manosetro/PycharmProjects/extra-apa/xml/' + corpus + '/' + filename, 'r') as f:
+        with open('./xml/' + corpus + '/' + filename, 'r') as f:
             xml_content = f.read()
             response['xml'] = xml_content
 
