@@ -104,6 +104,7 @@ public class DocumentsResource {
 			List<String> fields = new ArrayList<String>();
 			fields.add("title");
 			fields.add("body");
+			fields.add("slugline");
 			
 			Pair<Integer, List<Document>> documents = es.findDocuments(qb, corpus, page, nPerPage, fields);			
 			
