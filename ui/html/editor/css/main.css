@@ -1191,3 +1191,6 @@ div[contenteditable=false] {
 #precision,#recall{
     margin-right: 20px;
 }
+#back_articles{
+    top:42px;
+}
