@@ -38,7 +38,7 @@ import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
 /**
- * Rules resource (exposed at "/documents" path)
+ * Documents resource (exposed at "/documents" path)
  */
 @Singleton
 @Path("documents")

@@ -43,21 +43,21 @@ public class DictionariesResource {
 		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage) {
 	
 		
-	Query<Dictionary> query = dao.createQuery();
-	QueryResults<Dictionary> result = dao.find(query);
+		Query<Dictionary> query = dao.createQuery();
+		QueryResults<Dictionary> result = dao.find(query);
 	
-	FindOptions options = new FindOptions().skip((page-1)*nPerPage).limit(nPerPage);
+		FindOptions options = new FindOptions().skip((page-1)*nPerPage).limit(nPerPage);
 	
-	long total = result.count();
-	List<Dictionary> dictionaries = result.asList(options);
+		long total = result.count();
+		List<Dictionary> dictionaries = result.asList(options);
 	
-	PagedResponse<Dictionary> response = new PagedResponse<Dictionary>();
-	response.setEntries(dictionaries);
-	response.setPage(page);
-	response.setnPerPage(nPerPage);
-	response.setTotal(total);
+		PagedResponse<Dictionary> response = new PagedResponse<Dictionary>();
+		response.setEntries(dictionaries);
+		response.setPage(page);
+		response.setnPerPage(nPerPage);
+		response.setTotal(total);
 
-    return Response.ok(response).build();
+		return Response.ok(response).build();
 	}
     		
 	@POST
