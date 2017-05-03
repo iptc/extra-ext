@@ -1,6 +1,7 @@
 package org.iptc.extra.api.resources;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,8 +54,11 @@ public class ValidationsResource {
 				Node root = syntaxTree.getRootNode();
 				
 				if(!TreeUtils.isTreeValid(root)) {
+					
+					
+					List<Node> invalidNodes = TreeUtils.getInvalidNodes(root);
 					response.put("valid", "false");
-					response.put("message", "The rule has invalid operators/relations.");
+					response.put("message", "The rule has invalid operators/relations: " + StringUtils.join(invalidNodes, ", "));
 				}
 				else {
 					response.put("valid", "true");
