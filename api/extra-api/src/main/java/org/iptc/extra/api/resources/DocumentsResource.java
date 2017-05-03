@@ -28,13 +28,13 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 
 import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
+import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
-import org.iptc.extra.core.cql.CQLParser;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.es.ElasticSearchHandler;
-import org.iptc.extra.core.types.Document;
 import org.iptc.extra.core.types.Rule;
+import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
 /**
@@ -166,7 +166,7 @@ public class DocumentsResource {
 		// parse rule 
 		String cql = rule.getQuery();
 		cql = TextUtils.clean(rule.getQuery());	
-		SyntaxTree syntaxTree = CQLParser.parse(cql);
+		SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
 		if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 			return null;
 		}
@@ -177,7 +177,12 @@ public class DocumentsResource {
 	}
 	
 	private QueryBuilder getTopicQuery(String topicId) {
-		QueryBuilder qb = nestedQuery("mediatopics", termQuery("mediatopics.id", topicId), ScoreMode.Max);
+		
+		BoolQueryBuilder bqb = boolQuery();
+		bqb.must(termQuery("direct_media_topics.id", topicId));
+		bqb.must(termQuery("direct_media_topics.exclude", false));
+		
+		QueryBuilder qb = nestedQuery("direct_media_topics", bqb, ScoreMode.Total);
 		return qb;
 	}
 	

@@ -25,8 +25,8 @@ import javax.ws.rs.core.UriInfo;
 import org.bson.types.ObjectId;
 import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
+import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
-import org.iptc.extra.core.cql.CQLParser;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.types.Rule;
@@ -172,7 +172,7 @@ public class RulesResource {
 			String query = TextUtils.clean(rule.getQuery());
 			rule.setQuery(query);
 			
-			SyntaxTree syntaxTree = CQLParser.parse(query);
+			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
 			if(!syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
 				query = mapper.toString(syntaxTree.getRootNode(), "<br/>", "&emsp;");
 				if(query != null) {

@@ -18,8 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.api.responses.ErrorMessage;
+import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
-import org.iptc.extra.core.cql.CQLParser;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.utils.TreeUtils;
@@ -44,7 +44,7 @@ public class ValidationsResource {
 			
 			Map<String, Object> response = new HashMap<String, Object>();
 			
-			SyntaxTree syntaxTree = CQLParser.parse(cql);
+			SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 				response.put("valid", "false");
 				response.put("message", StringUtils.join(syntaxTree.getErrors(), " \n "));
