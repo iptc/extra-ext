@@ -52,8 +52,14 @@ public class ValidationsResource {
 			else {
 				Node root = syntaxTree.getRootNode();
 				
-				response.put("valid", "true");
-				response.put("message", "The rule has correct syntax.");
+				if(!TreeUtils.isTreeValid(root)) {
+					response.put("valid", "false");
+					response.put("message", "The rule has invalid operators/relations.");
+				}
+				else {
+					response.put("valid", "true");
+					response.put("message", "The rule has correct syntax.");
+				}
 				
 				QueryBuilder qb = mapper.toElasticSearch(root);
 				if(qb != null) {

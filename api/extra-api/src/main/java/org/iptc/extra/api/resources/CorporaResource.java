@@ -67,8 +67,15 @@ public class CorporaResource {
 	@POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Corpus postCorpus(Corpus corpus) {
-    	return null;
+    public Response postCorpus(Corpus corpus) {
+		try {
+		
+			return null;
+		}
+		catch(Exception e) {
+			ErrorMessage msg = new ErrorMessage(e.getMessage());
+			return Response.status(400).entity(msg).build();
+		}
     }
 	
 	@GET @Path("{corpusid}")
