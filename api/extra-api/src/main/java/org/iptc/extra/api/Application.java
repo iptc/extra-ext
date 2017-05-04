@@ -4,6 +4,12 @@ import java.util.Properties;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.iptc.extra.api.binder.ApplicationBinder;
+import org.iptc.extra.api.databind.DocumentSerializer;
+import org.iptc.extra.core.types.document.Document;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 /**
  * @author Petr Bouda (petr.bouda at oracle.com)
@@ -14,11 +20,25 @@ public class Application extends ResourceConfig {
 
     public Application(Properties properties) {
     	packages(Application.class.getPackage().getName());
-        //register(MoxyJsonFeature.class);
-        //register(createMoxyJsonResolver());
         register(new ApplicationBinder(properties));
+        register(createJacksonJaxbJsonProvider());
+        
+        //register(createMoxyJsonResolver());
     }
 
+    public static JacksonJaxbJsonProvider createJacksonJaxbJsonProvider() {
+    	ObjectMapper mapper = new ObjectMapper();
+    	
+    	SimpleModule module = new SimpleModule();
+    	module.addSerializer(Document.class, new DocumentSerializer());
+    	mapper.registerModule(module);
+    	
+    	JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+    	provider.setMapper(mapper);
+ 
+    	return provider;
+    }
+    
     /*
     public static ContextResolver<MoxyJsonConfig> createMoxyJsonResolver() {
         final MoxyJsonConfig moxyJsonConfig = new MoxyJsonConfig();

@@ -26,8 +26,10 @@ import org.elasticsearch.index.query.QueryBuilder;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
+import org.iptc.extra.api.databind.DocumentSerializer;
 import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
+
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
@@ -37,13 +39,14 @@ import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
-import com.google.gson.JsonElement;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Documents resource (exposed at "/documents" path)
  */
 @Singleton
 @Path("documents")
+@JsonSerialize(using=DocumentSerializer.class)
 public class DocumentsResource {
 
 	@Inject
@@ -102,8 +105,8 @@ public class DocumentsResource {
 			}
 
 			String topicId = savedRule.getTopicId();
-
-			PagedResponse<JsonElement> response = new PagedResponse<JsonElement>();
+			
+			PagedResponse<Document> response = new PagedResponse<Document>();
 			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusId);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
@@ -128,13 +131,7 @@ public class DocumentsResource {
 			}
 			
 			Pair<Integer, List<Document>> results = es.findDocuments(qb, corpusId, page, nPerPage, fields);			
-			
-			List<JsonElement> entries = new ArrayList<JsonElement>();
-			for(Document document : results.getValue()) {
-				entries.add(document.toJson());
-			}
-			
-			response.setEntries(entries);
+			response.setEntries(results.getValue());
 			
 			response.setTotal(results.getKey());
 			response.setnPerPage(nPerPage);
@@ -143,6 +140,7 @@ public class DocumentsResource {
 			return Response.status(200).entity(response).build();
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			ErrorMessage msg = new ErrorMessage(e.getMessage());
 			return Response.status(400).entity(msg).build();
 		}
