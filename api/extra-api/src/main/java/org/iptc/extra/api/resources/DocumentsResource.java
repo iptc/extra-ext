@@ -31,13 +31,9 @@ import org.iptc.extra.api.responses.PagedResponse;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
-import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
-import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.es.ElasticSearchHandler;
-import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
-import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
@@ -54,11 +50,11 @@ public class DocumentsResource {
 	@Inject
     private RulesDAO dao;
 	
-	@Inject
-    private CorporaDAO corporaDAO;
+	//@Inject
+    //private CorporaDAO corporaDAO;
 	
-	@Inject
-    private SchemasDAO schemasDAO;
+	//@Inject
+    //private SchemasDAO schemasDAO;
 	
 	private CQLMapper mapper = new CQLMapper();
 	
@@ -74,6 +70,10 @@ public class DocumentsResource {
 		try {			
 			
 			List<String> fields = new ArrayList<String>();
+			fields.add("title");
+			fields.add("body");
+			fields.add("slugline");
+			/*
 			Corpus corpus = corporaDAO.get(corpusId);
 			if(corpus == null) {
 				fields.add("title");
@@ -85,6 +85,7 @@ public class DocumentsResource {
 				Schema schema = schemasDAO.get(schemaId);
 				fields.addAll(schema.getFieldNames());
 			}
+			*/
 			
 			Rule savedRule = dao.get(rule.getId());
 			if(savedRule == null) {
