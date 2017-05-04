@@ -37,6 +37,8 @@ import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
+import com.google.gson.JsonElement;
+
 /**
  * Documents resource (exposed at "/documents" path)
  */
@@ -101,7 +103,7 @@ public class DocumentsResource {
 
 			String topicId = savedRule.getTopicId();
 
-			PagedResponse<String> response = new PagedResponse<String>();
+			PagedResponse<JsonElement> response = new PagedResponse<JsonElement>();
 			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusId);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
@@ -127,9 +129,9 @@ public class DocumentsResource {
 			
 			Pair<Integer, List<Document>> results = es.findDocuments(qb, corpusId, page, nPerPage, fields);			
 			
-			List<String> entries = new ArrayList<String>();
+			List<JsonElement> entries = new ArrayList<JsonElement>();
 			for(Document document : results.getValue()) {
-				entries.add(document.toJson().toString());
+				entries.add(document.toJson());
 			}
 			
 			response.setEntries(entries);
