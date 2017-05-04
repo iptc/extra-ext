@@ -26,7 +26,6 @@ import org.elasticsearch.index.query.QueryBuilder;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
-import org.iptc.extra.api.databind.DocumentSerializer;
 import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
 
@@ -39,14 +38,11 @@ import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 /**
  * Documents resource (exposed at "/documents" path)
  */
 @Singleton
 @Path("documents")
-@JsonSerialize(using=DocumentSerializer.class)
 public class DocumentsResource {
 
 	@Inject
