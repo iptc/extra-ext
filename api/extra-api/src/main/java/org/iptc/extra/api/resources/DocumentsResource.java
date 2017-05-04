@@ -31,9 +31,13 @@ import org.iptc.extra.api.responses.PagedResponse;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
+import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
+import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.es.ElasticSearchHandler;
+import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
+import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
@@ -50,19 +54,38 @@ public class DocumentsResource {
 	@Inject
     private RulesDAO dao;
 	
+	@Inject
+    private CorporaDAO corporaDAO;
+	
+	@Inject
+    private SchemasDAO schemasDAO;
+	
 	private CQLMapper mapper = new CQLMapper();
 	
 	@POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response searchDocuments(Rule rule, 
-    		@QueryParam("corpus") String corpus,
+    		@QueryParam("corpus") String corpusId,
     		@QueryParam("match") String match,
     		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage,
     		@DefaultValue("1") @QueryParam("page") int page) {
 		
-		
 		try {			
+			
+			List<String> fields = new ArrayList<String>();
+			Corpus corpus = corporaDAO.get(corpusId);
+			if(corpus == null) {
+				fields.add("title");
+				fields.add("body");
+				fields.add("slugline");
+			}
+			else {
+				String schemaId = corpus.getSchemaId();
+				Schema schema = schemasDAO.get(schemaId);
+				fields.addAll(schema.getFieldNames());
+			}
+			
 			Rule savedRule = dao.get(rule.getId());
 			if(savedRule == null) {
 				ErrorMessage msg = new ErrorMessage("Cannot find rule " + rule.getId());
@@ -78,7 +101,7 @@ public class DocumentsResource {
 			String topicId = savedRule.getTopicId();
 
 			PagedResponse<Document> response = new PagedResponse<Document>();
-			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpus);
+			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusId);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
 			}
@@ -101,12 +124,7 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			List<String> fields = new ArrayList<String>();
-			fields.add("title");
-			fields.add("body");
-			fields.add("slugline");
-			
-			Pair<Integer, List<Document>> documents = es.findDocuments(qb, corpus, page, nPerPage, fields);			
+			Pair<Integer, List<Document>> documents = es.findDocuments(qb, corpusId, page, nPerPage, fields);			
 			
 			response.setEntries(documents.getValue());
 			response.setTotal(documents.getKey());

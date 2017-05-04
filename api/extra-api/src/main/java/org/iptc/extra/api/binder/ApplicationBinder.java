@@ -6,6 +6,7 @@ import javax.inject.Singleton;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.iptc.extra.api.ApplicationProperties;
+import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.DictionariesDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
@@ -65,6 +66,9 @@ public class ApplicationBinder extends AbstractBinder {
         	
         	TaxonomiesDAO taxonomiesDAO = new TaxonomiesDAO(datastore);
         	bind(taxonomiesDAO).to(TaxonomiesDAO.class);
+        	
+        	CorporaDAO corporaDAO = new CorporaDAO(datastore);
+        	bind(corporaDAO).to(CorporaDAO.class);
         	
         	String esHostname = properties.getProperty(ApplicationProperties.ES_HOST, "127.0.0.1");
         	int esPort = Integer.parseInt(properties.getProperty(ApplicationProperties.ES_PORT, "9200"));
