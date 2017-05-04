@@ -26,11 +26,11 @@ services:
         aliases:
           - elasticsearch
 
-  searchapi:
+  documentsapi:
     build:
-      context: search-api
+      context: documents-api
     volumes:
-      - ./search-api:/api
+      - ./documents-api:/api
     command: python3 api.py
     ports:
       - 5000:5000
@@ -38,7 +38,7 @@ services:
     networks:
       esnet:
         aliases:
-          - searchapi
+          - documentsapi
 
   api:
     build:
