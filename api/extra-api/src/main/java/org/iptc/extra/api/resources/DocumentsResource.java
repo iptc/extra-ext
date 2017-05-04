@@ -101,7 +101,7 @@ public class DocumentsResource {
 
 			String topicId = savedRule.getTopicId();
 
-			PagedResponse<Document> response = new PagedResponse<Document>();
+			PagedResponse<String> response = new PagedResponse<String>();
 			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusId);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
@@ -125,10 +125,16 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			Pair<Integer, List<Document>> documents = es.findDocuments(qb, corpusId, page, nPerPage, fields);			
+			Pair<Integer, List<Document>> results = es.findDocuments(qb, corpusId, page, nPerPage, fields);			
 			
-			response.setEntries(documents.getValue());
-			response.setTotal(documents.getKey());
+			List<String> entries = new ArrayList<String>();
+			for(Document document : results.getValue()) {
+				entries.add(document.toJson().toString());
+			}
+			
+			response.setEntries(entries);
+			
+			response.setTotal(results.getKey());
 			response.setnPerPage(nPerPage);
 			response.setPage(page);
 
