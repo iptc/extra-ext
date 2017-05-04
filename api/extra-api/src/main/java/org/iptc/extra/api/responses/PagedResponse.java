@@ -60,4 +60,12 @@ public class PagedResponse<K> {
 	public void addAnnotation(String key, Object value) {
 		annotations.put(key, value);
 	}
+	
+	public Map<String, Object> getAnnotations() {
+		return annotations;
+	}
+	
+	public Object getAnnotation(String key) {
+		return annotations.get(key);
+	}
 }

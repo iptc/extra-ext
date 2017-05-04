@@ -19,9 +19,6 @@ public class DocumentSerializer extends JsonSerializer<Document> {
 			DocumentField field = document.get(fieldName);
 			gen.writeStringField(fieldName, field.getValue());
 		}
-		
 		gen.writeEndObject();
 	}
-  
-	
 }

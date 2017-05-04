@@ -26,8 +26,8 @@ import org.elasticsearch.index.query.QueryBuilder;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
+import org.iptc.extra.api.responses.DocumentPagedResponse;
 import org.iptc.extra.api.responses.ErrorMessage;
-import org.iptc.extra.api.responses.PagedResponse;
 
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
@@ -102,7 +102,7 @@ public class DocumentsResource {
 
 			String topicId = savedRule.getTopicId();
 			
-			PagedResponse<Document> response = new PagedResponse<Document>();
+			DocumentPagedResponse response = new DocumentPagedResponse();
 			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusId);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
@@ -147,21 +147,21 @@ public class DocumentsResource {
 	private Map<String, Object> getCountAnnotations(QueryBuilder rulesQb, String topicId, String corpus) throws IOException {
 		Map<String, Object> counts = new HashMap<String, Object>();
 		
-		int allDocuments = es.countDocuments(matchAllQuery(), corpus);
+		Integer allDocuments = es.countDocuments(matchAllQuery(), corpus);
 		
-		int ruleMatches = es.countDocuments(rulesQb, corpus);
+		Integer ruleMatches = es.countDocuments(rulesQb, corpus);
 		
 		QueryBuilder topicsQuery = getTopicQuery(topicId);
-		int topicMatches = es.countDocuments(topicsQuery, corpus);
+		Integer topicMatches = es.countDocuments(topicsQuery, corpus);
 		
 		QueryBuilder ruleAndTopicQuery = getRulesAndTopicQuery(rulesQb, topicId);
-		int bothMatches = es.countDocuments(ruleAndTopicQuery, corpus);
+		Integer bothMatches = es.countDocuments(ruleAndTopicQuery, corpus);
 		
 		QueryBuilder onlyRuleQuery = getRulesOnlyQuery(rulesQb, topicId);
-		int ruleOnlyMatches = es.countDocuments(onlyRuleQuery, corpus);
+		Integer ruleOnlyMatches = es.countDocuments(onlyRuleQuery, corpus);
 		
 		QueryBuilder onlyTopicQuery = getTopicOnlyQuery(rulesQb, topicId);
-		int topicOnlyMatches = es.countDocuments(onlyTopicQuery, corpus);
+		Integer topicOnlyMatches = es.countDocuments(onlyTopicQuery, corpus);
 		
 		counts.put("ruleMatches", ruleMatches);
 		counts.put("topicMatches", topicMatches);
@@ -169,11 +169,11 @@ public class DocumentsResource {
 		counts.put("ruleOnlyMatches", ruleOnlyMatches);
 		counts.put("topicOnlyMatches", topicOnlyMatches);
 		
-		double precision = ruleMatches == 0 ? 0 : (double) bothMatches / (double) ruleMatches;
-		double recall = topicMatches == 0 ? 0 : (double) bothMatches / (double) topicMatches;
+		Double precision = ruleMatches == 0 ? 0 : (double) bothMatches / (double) ruleMatches;
+		Double recall = topicMatches == 0 ? 0 : (double) bothMatches / (double) topicMatches;
 		
 		
-		double accuracy = allDocuments == 0 ? 0 : (double)(allDocuments - ruleOnlyMatches - topicOnlyMatches) / (double) allDocuments;
+		Double accuracy = allDocuments == 0 ? 0 : (double)(allDocuments - ruleOnlyMatches - topicOnlyMatches) / (double) allDocuments;
 		
 		DecimalFormat formatter = new DecimalFormat("###.###");
 		

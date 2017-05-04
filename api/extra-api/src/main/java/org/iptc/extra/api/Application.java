@@ -4,7 +4,9 @@ import java.util.Properties;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.iptc.extra.api.binder.ApplicationBinder;
+import org.iptc.extra.api.databind.DocumentPagedResponseSerializer;
 import org.iptc.extra.api.databind.DocumentSerializer;
+import org.iptc.extra.api.responses.DocumentPagedResponse;
 import org.iptc.extra.core.types.document.Document;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,8 @@ public class Application extends ResourceConfig {
     	
     	SimpleModule module = new SimpleModule();
     	module.addSerializer(Document.class, new DocumentSerializer());
+    	module.addSerializer(DocumentPagedResponse.class, new DocumentPagedResponseSerializer());
+  
     	mapper.registerModule(module);
     	
     	JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
