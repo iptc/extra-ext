@@ -40,15 +40,16 @@ public class ValidationsResource {
     public Response postRuleValidation(Rule rule) {
 		try {
 			
-			String cql = TextUtils.clean(rule.getQuery());	
-			rule.setQuery(cql);
+			String query = TextUtils.clean(rule.getQuery());	
+			rule.setQuery(query);
 			
 			Map<String, Object> response = new HashMap<String, Object>();
 			response.put("es_dsl", "");	
 			response.put("tree", "");	
 			response.put("html", "");	
+			response.put("query", query);
 			
-			SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
+			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 				response.put("valid", "false");
 				response.put("message", StringUtils.join(syntaxTree.getErrors(), " \n "));
@@ -77,7 +78,7 @@ public class ValidationsResource {
 					response.put("html", htmlTaggedCql);
 				}
 				
-				String query = mapper.toString(root, "<br/>", "&emsp;");
+				query = mapper.toString(root, "<br/>", "&emsp;");
 				if(query != null) {
 					response.put("query", query);
 				}
