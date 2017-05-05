@@ -40,14 +40,16 @@ public class ValidationsResource {
     public Response postRuleValidation(Rule rule) {
 		try {
 			
-			String query = TextUtils.clean(rule.getQuery());	
-			rule.setQuery(query);
-			
+			String query = rule.getQuery();	
+
 			Map<String, Object> response = new HashMap<String, Object>();
 			response.put("es_dsl", "");	
 			response.put("tree", "");	
 			response.put("html", "");	
 			response.put("query", query);
+			
+			query = TextUtils.clean(query);
+			rule.setQuery(query);
 			
 			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
