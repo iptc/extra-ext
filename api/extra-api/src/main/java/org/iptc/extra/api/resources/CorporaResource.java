@@ -19,7 +19,12 @@ import javax.ws.rs.core.Response;
 import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
 import org.iptc.extra.core.daos.CorporaDAO;
+import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.daos.TaxonomiesDAO;
 import org.iptc.extra.core.types.Corpus;
+import org.iptc.extra.core.types.Schema;
+import org.iptc.extra.core.types.Taxonomy;
+import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.FindOptions;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.QueryResults;
@@ -34,7 +39,12 @@ public class CorporaResource {
 	@Inject
 	private CorporaDAO dao;
 	    
-	    
+	@Inject
+	private SchemasDAO schemasDAO;
+	
+	@Inject
+	private TaxonomiesDAO taxonomiesDAO;
+	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getCoprora(
@@ -50,6 +60,18 @@ public class CorporaResource {
 			long total = result.count();
 			List<Corpus> corpora = result.asList(options);
 		
+			for(Corpus corpus : corpora) {
+				if(corpus.getSchemaId() != null) {
+					Schema schema = schemasDAO.get(corpus.getSchemaId());
+					corpus.setSchema(schema);
+				}
+				
+				if(corpus.getTaxonomyId() != null) {
+					Taxonomy taxonomy = taxonomiesDAO.get(corpus.getTaxonomyId());
+					corpus.setTaxonomy(taxonomy);
+				}
+			}
+			
 			PagedResponse<Corpus> response = new PagedResponse<Corpus>();
 			response.setEntries(corpora);
 			response.setPage(page);
@@ -69,8 +91,17 @@ public class CorporaResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response postCorpus(Corpus corpus) {
 		try {
-		
-			return null;
+			String id = corpus.getId();
+			if(id != null && dao.exists(id)) {
+				ErrorMessage msg = new ErrorMessage("Conflict. Corpus " + id + " already exists.");
+				return Response.status(409).entity(msg).build();
+			}
+			else {
+				Key<Corpus> createdCorpusKey = dao.save(corpus);
+				corpus.setId(createdCorpusKey.getId().toString());
+	    		
+	    		return Response.status(201).entity(corpus).build();
+			}
 		}
 		catch(Exception e) {
 			ErrorMessage msg = new ErrorMessage(e.getMessage());
@@ -86,6 +117,16 @@ public class CorporaResource {
 		if(corpus == null) {
 			ErrorMessage msg = new ErrorMessage("Corpus " + corpusid + " not found");
 			return Response.status(404).entity(msg).build();
+		}
+		
+		if(corpus.getSchemaId() != null) {
+			Schema schema = schemasDAO.get(corpus.getSchemaId());
+			corpus.setSchema(schema);
+		}
+		
+		if(corpus.getTaxonomyId() != null) {
+			Taxonomy taxonomy = taxonomiesDAO.get(corpus.getTaxonomyId());
+			corpus.setTaxonomy(taxonomy);
 		}
 		
 		return Response.status(200).entity(corpus).build();
