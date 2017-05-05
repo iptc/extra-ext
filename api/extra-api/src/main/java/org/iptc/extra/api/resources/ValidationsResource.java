@@ -44,6 +44,9 @@ public class ValidationsResource {
 			rule.setQuery(cql);
 			
 			Map<String, Object> response = new HashMap<String, Object>();
+			response.put("es_dsl", "");	
+			response.put("tree", "");	
+			response.put("html", "");	
 			
 			SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
@@ -54,8 +57,6 @@ public class ValidationsResource {
 				Node root = syntaxTree.getRootNode();
 				
 				if(!TreeUtils.isTreeValid(root)) {
-					
-					
 					List<Node> invalidNodes = TreeUtils.getInvalidNodes(root);
 					response.put("valid", "false");
 					response.put("message", "The rule has invalid operators/relations: " + StringUtils.join(invalidNodes, ", "));
