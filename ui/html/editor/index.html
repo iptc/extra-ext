@@ -43,9 +43,9 @@
 <div id="overlay"></div>
 <div id="myModal" class="reveal-modal">
     <h1>
-      Unsaved Rule:
-      <br/>
-      <span id="modal_rule"></span>
+        Unsaved Rule:
+        <br/>
+        <span id="modal_rule"></span>
     </h1>
 
     <p>Changes will be lost.</p>
@@ -76,17 +76,10 @@
 
                 </ul>
             </div>
-            <div id="rule_title"><p>Rule: <span id="rule_name">-</span></p><p>Topic: <span id="rule_topic">-</span></p><a href="#" class="close" id="rule_close">×</a>
-            </div>
-            <div class="alert alert-success alert-dismissable" id="success_modal">
-                <a href="#" class="close" id="success_close">×</a>
-                <strong>Valid!</strong> The rule has correct syntax.
-            </div>
-            <div class="alert alert-danger alert-dismissable" id="error_modal">
-                <a href="#" class="close" id="error_close">×</a>
-                <strong>Invalid! </strong><span id="error_msg"></span>
-            </div>
+            <div id="rule_title"><p>Rule: <span id="rule_name">-</span></p>
 
+                <p>Topic: <span id="rule_topic">-</span></p><a href="#" class="close" id="rule_close">×</a>
+            </div>
             <div contenteditable="false" placeholder="Type your rule here..." id="wmd-input"
                  class="wmd-input wmd-input-left"></div>
             <div class="wmd-button-bar wmd-button-bar-bottom" id="rule_buttons">
@@ -118,7 +111,9 @@
 
             <div id="stats_articles">
                 <h3>RESULTS</h3>
-                <div style="font-weight: bold">Precision: <span id="precision">0</span> Recall: <span id="recall"> </span> Accuracy: <span id="accuracy"> </span></div>
+
+                <div style="font-weight: bold">Precision: <span id="precision">0</span> Recall: <span
+                        id="recall"> </span> Accuracy: <span id="accuracy"> </span></div>
                 <table class="pure-table pure-table-horizontal">
                     <thead>
                     <tr>
@@ -180,8 +175,17 @@
         <h2 class="background"><span>Syntax Check</span></h2>
 
         <div class="wmd-container">
-            <div class="wmd-input" id="json_result"><a href="#" class="close" id="json_close"
-                                                       style="display: block;">×</a>
+            <div class="wmd-input" id="json_result">
+                <div class="alert alert-success alert-dismissable" id="success_modal">
+                    <a href="#" class="close" id="success_close">×</a>
+                    <strong>Valid!</strong> The rule has correct syntax.
+                </div>
+                <div class="alert alert-danger alert-dismissable" id="error_modal">
+                    <a href="#" class="close" id="error_close">×</a>
+                    <strong>Invalid! </strong><span id="error_msg"></span>
+                </div>
+                <a href="#" class="close" id="json_close"
+                   style="display: block;">×</a>
 
                 <div style="text-align: center">
                     <div class="btn-group">
@@ -190,20 +194,41 @@
                         <button type="button" id="tree_but" class="btn2 btn-default">Syntax Tree</button>
                     </div>
                 </div>
-                <pre id="esdsl"></pre>
-                <div id="tree"></div>
-                <div id="html">
-                    <div id="legend_html">
-                        <div class="legendcolor" style="background-color:#A4A9AD;"></div>
+                <pre id="esdsl">
+                    <div id="esdsl_content"></div>
+                    <div id="no_output_esdsl">Empty Output</div>
+                </pre>
+                <div id="tree">
+                    <div id="legend_tree">
+                        <div class="legendcolor" style="background-color:#DEDFE1;"></div>
                         <div class="legendtext">Boolean Operator</div>
                         <div class="legendcolor" style="background-color:#A5D0A8;"></div>
                         <div class="legendtext">Index</div>
-                        <div class="legendcolor" style="background-color:#89AAE6;"></div>
+                        <div class="legendcolor" style="background-color:#bed0f1;"></div>
                         <div class="legendtext">Relation</div>
                         <div class="legendcolor" style="background-color:#84DCCF;"></div>
                         <div class="legendtext">Search Term</div>
+                        <div class="legendcolor" style="background-color:red;border-radius: 0;"></div>
+                        <div class="legendtext">Error</div>
+                    </div>
+                    <div id="tree_content"></div>
+                    <div id="no_output_tree">Empty Output</div>
+                </div>
+                <div id="html">
+                    <div id="legend_html">
+                        <div class="legendcolor" style="background-color:#DEDFE1;"></div>
+                        <div class="legendtext">Boolean Operator</div>
+                        <div class="legendcolor" style="background-color:#A5D0A8;"></div>
+                        <div class="legendtext">Index</div>
+                        <div class="legendcolor" style="background-color:#bed0f1;"></div>
+                        <div class="legendtext">Relation</div>
+                        <div class="legendcolor" style="background-color:#84DCCF;"></div>
+                        <div class="legendtext">Search Term</div>
+                        <div class="legendcolor" style="background-color:red;border-radius: 0;"></div>
+                        <div class="legendtext">Error</div>
                     </div>
                     <div id="html_content"></div>
+                    <div id="no_output_html">Empty Output</div>
                 </div>
             </div>
         </div>

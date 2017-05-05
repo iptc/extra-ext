@@ -376,10 +376,6 @@ body, html {
     display: block; /* For Firefox */
 }
 
-.syntax_open {
-    height: calc(100% - 177px) !important;
-}
-
 #rule_title {
     text-align: center;
     background: #ddd;
@@ -643,8 +639,8 @@ li.selected {
 
 .alert {
     padding: 5px 15px;
-    border: 1px solid #c8ccd0;
     border-top: 0;
+    margin-right: 43px;
     font-size: 14px;
 }
 
@@ -700,7 +696,7 @@ a.close {
 #json_close {
     opacity: 1;
     position: absolute;
-    right: 8px;
+    right: 21px;
     font-size: 34px !important;
     top: 39px;
 }
@@ -858,7 +854,7 @@ div[contenteditable=false] {
 }*/
 
 .booleanOp {
-    background: #A4A9AD;
+    background: #DEDFE1;
     display: inline-block;
     margin-left: 0 !important;
     padding: 0 5px;
@@ -872,7 +868,7 @@ div[contenteditable=false] {
 }
 
 .relation {
-    background: #89AAE6;
+    background: #bed0f1;
     display: inline-block;
     margin-left: 0 !important;
     padding: 0 5px;
@@ -1104,7 +1100,7 @@ div[contenteditable=false] {
     background: rgba(255, 255, 255, 0.15);
 }
 
-#legend_html {
+#legend_html,#legend_tree {
     width: 100%;
     text-align: center;
 }
@@ -1193,4 +1189,21 @@ div[contenteditable=false] {
 }
 #back_articles{
     top:42px;
+}
+
+[data-valid="false"]{
+    background: red;
+    color: white;
+}
+#no_output_html,#no_output_tree,#no_output_esdsl{
+    font-weight: bold;
+    font-size: 22px;
+    position: absolute;
+    top: 50%;
+    display: none;
+    text-align: center;
+    left: 50%;
+    margin-left: -72px;
+    margin-top: -14px;
+    font-family: sans-serif;
 }

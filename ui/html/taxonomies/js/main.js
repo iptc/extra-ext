@@ -57,10 +57,10 @@ $(function () {
         $('#topics_result ul').empty();
         $.ajax({
             type: "GET",
-            url: "http://" + window.location.hostname + ":8888/extra/api/taxonomies/" + $(this).attr('data-id') + "/topics?nPerPage=20",
+            url: "http://" + window.location.hostname + ":8888/extra/api/taxonomies/" + $(this).attr('data-id') + "/topics?nPerPage=20&q=" + $('#topic_search').val(),
             dataType: "json",
             success: function (json) {
-                $('#new_topic').removeAttr('disabled');
+                $('#new_topic,#topic_search').removeAttr('disabled');
                 for (var i = 0; i < json.entries.length; i++) {
                     $('#topics_result ul').append('<li data-id="' + json.entries[i].topicId + '"><span class="id_topic">' + json.entries[i].topicId + '</span><span class="name_topic">' + json.entries[i].name + '</span><img class="delete_topic" src="imgs/delete.png"><img class="edit_topic" src="imgs/edit.png"><img class="link" src="imgs/link.png"><p class="definition_topic">' + json.entries[i].definition + '</p></li>');
                 }
@@ -101,7 +101,7 @@ $(function () {
 function parse_topics(page) {
     $.ajax({
         type: "GET",
-        url: "http://" + window.location.hostname + ":8888/extra/api/taxonomies/" + $('.highlight_taxonomy').attr('data-id') + "/topics?nPerPage=20&page=" + page,
+        url: "http://" + window.location.hostname + ":8888/extra/api/taxonomies/" + $('.highlight_taxonomy').attr('data-id') + "/topics?nPerPage=20&page=" + page + "&q=" + $('#topic_search').val(),
         dataType: "json",
         success: function (json) {
             for (var i = 0; i < json.entries.length; i++) {
@@ -291,7 +291,7 @@ $("#delete_edit").click(function () {
                     $('#topics_result').addClass('disabled_topic').addClass('well_opened');
                     $('#topics_result ul').empty();
                     $('#well_topics,#zero_topics').hide();
-                    $('#new_topic').attr('disabled', true);
+                    $('#new_topic,#topic_search').attr('disabled', true);
                 }
                 $('.deleted_selection_tax').remove();
             },
@@ -299,4 +299,12 @@ $("#delete_edit").click(function () {
             }
         });
     }
+});
+$("#topic_search").keyup(function (e) {
+    if (e.keyCode === 13) {
+        $('.highlight_taxonomy').click();
+    }
+});
+$(".icon-search").click(function (e) {
+    $('.highlight_taxonomy').click();
 });

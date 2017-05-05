@@ -217,7 +217,7 @@ html, body {
     overflow: auto;
 }
 
-.inlist a:not(.activelan):not(.activesplit) {
+.inlist a:not(.activelan) {
     color: #666 !important;
 }
 
@@ -247,9 +247,6 @@ html, body {
     left: 32px;
     border-left: 1px solid #e2e2e2;
     height: 68px;
-}
-#split:before{
-    height: 102px !important;
 }
 
 #settings {
@@ -347,10 +344,6 @@ li.selected {
 .radio {
     display: inline-block;
     margin: 0 0 4px 26px;
-}
-
-#split{
-    border-top: 1px solid gray;
 }
 input[type="radio"] {
     display: none;

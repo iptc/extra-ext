@@ -13,15 +13,6 @@ $(function () {
                  }*/
             },
             onHideListEvent: function (e) {
-                if ($('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g) != null) {
-                    var split = $('.activesplit').parent().attr('id');
-                    if (split == null) {
-                        $('#train').find('a').addClass('activesplit');
-                    }
-                }
-                else {
-                    $('.sub2').find('a').removeClass('activesplit');
-                }
             },
             showAnimation: {
                 type: "fade",
@@ -110,12 +101,7 @@ $("#settings").on("click", ".sub1", function (e) {
         $('.well,#empty,#info').hide();
         $('#tiles').empty();
         $('#slugline_param').text('');
-        $('.sub2 a').removeClass('activesplit');
         $("#date_range").daterangepicker("clearRange");
-        var split = $('.activesplit').parent().attr('id');
-        if (split == null) {
-            split = "";
-        }
         $('.sub1 a').removeClass('activelan');
         $(this).find('a').addClass('activelan');
         $("#date_range").daterangepicker("destroy");
@@ -123,7 +109,7 @@ $("#settings").on("click", ".sub1", function (e) {
             options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=apa&association=" + document.querySelector('input[name="radio"]:checked').value;
             $.ajax({
                 type: "GET",
-                url: "http://"+window.location.hostname+":5000/api/stats?corpus=apa&field=contentCreated&split=" + split,
+                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=contentCreated",
                 dataType: "json",
                 success: function (json) {
                     $("#date_range").daterangepicker({
@@ -145,10 +131,10 @@ $("#settings").on("click", ".sub1", function (e) {
             });
         }
         else if ($(this).attr('id') === "reuters") {
-            options.url = "http://"+window.location.hostname+":5000/api/topics?corpus=reuters&association=" + document.querySelector('input[name="radio"]:checked').value;
+            options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=reuters&association=" + document.querySelector('input[name="radio"]:checked').value;
             $.ajax({
                 type: "GET",
-                url: "http://"+window.location.hostname+":5000/api/stats?corpus=reuters&field=contentCreated&split=" + split,
+                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=reuters&field=contentCreated",
                 dataType: "json",
                 success: function (json) {
                     $("#date_range").daterangepicker({
@@ -172,99 +158,12 @@ $("#settings").on("click", ".sub1", function (e) {
         $("#topics_autocomplete").val("").easyAutocomplete(options);
     }
 });
-$("#settings").on("click", ".sub2", function (e) {
-    e.preventDefault();
-    if ($('.sub2').find('a').hasClass('activesplit')) {
-        if (!($(this).find('a').hasClass('activesplit'))) {
-            var corpus = $('.activelan').parent().attr('id');
-            $('.sub2 a').removeClass('activesplit');
-            $(this).find('a').addClass('activesplit');
-            $("#date_range").daterangepicker("destroy");
-            if ($(this).attr('id') === "train") {
-                $.ajax({
-                    type: "GET",
-                    url: "http://"+window.location.hostname+":5000/api/stats?corpus=" + corpus + "&field=contentCreated&split=train",
-                    dataType: "json",
-                    success: function (json) {
-                        $("#date_range").daterangepicker({
-                            initialText: 'Select period...',
-                            datepickerOptions: {
-                                numberOfMonths: 2,
-                                minDate: moment(json.min).format("MM/DD/YYYY"),
-                                maxDate: moment(json.max).format("MM/DD/YYYY")
-                            },
-                            change: function (event, data) {
-                                var json_date = JSON.parse($("#date_range").val());
-                                if (json_date.start === json_date.end) {
-                                    $("#date_range").daterangepicker("clearRange");
-                                }
-                            }
-                        });
-                    },
-                    async: true
-                });
-            }
-            else if ($(this).attr('id') === "test") {
-                $.ajax({
-                    type: "GET",
-                    url: "http://"+window.location.hostname+":5000/api/stats?corpus=" + corpus + "&field=contentCreated&split=test",
-                    dataType: "json",
-                    success: function (json) {
-                        $("#date_range").daterangepicker({
-                            initialText: 'Select period...',
-                            datepickerOptions: {
-                                numberOfMonths: 2,
-                                minDate: moment(json.min).format("MM/DD/YYYY"),
-                                maxDate: moment(json.max).format("MM/DD/YYYY")
-                            },
-                            change: function (event, data) {
-                                var json_date = JSON.parse($("#date_range").val());
-                                if (json_date.start === json_date.end) {
-                                    $("#date_range").daterangepicker("clearRange");
-                                }
-                            }
-                        });
-                    },
-                    async: true
-                });
-            }
-            else if ($(this).attr('id') === "all") {
-                $.ajax({
-                    type: "GET",
-                    url: "http://"+window.location.hostname+":5000/api/stats?corpus=" + corpus + "&field=contentCreated&split=",
-                    dataType: "json",
-                    success: function (json) {
-                        $("#date_range").daterangepicker({
-                            initialText: 'Select period...',
-                            datepickerOptions: {
-                                numberOfMonths: 2,
-                                minDate: moment(json.min).format("MM/DD/YYYY"),
-                                maxDate: moment(json.max).format("MM/DD/YYYY")
-                            },
-                            change: function (event, data) {
-                                var json_date = JSON.parse($("#date_range").val());
-                                if (json_date.start === json_date.end) {
-                                    $("#date_range").daterangepicker("clearRange");
-                                }
-                            }
-                        });
-                    },
-                    async: true
-                });
-            }
-        }
-    }
-});
 $('#search_start').click(function () {
     abort();
     $('#loading').show();
     $('.well,#empty,#info').hide();
     $('#tiles').empty();
     var section = $('#slug_value').text();
-    var split = $('.activesplit').parent().attr('id');
-    if ((split == null) || (split === "all")) {
-        split = "";
-    }
     var q = $('#query').val();
     var corpus = $('.activelan').parent().attr('id');
     var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
@@ -288,7 +187,7 @@ $('#search_start').click(function () {
     }
     $.ajax({
         type: "GET",
-        url: "http://"+window.location.hostname+":5000/api/articles?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&mediatopic=" + mediatopic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section + "&split=" + split,
+        url: "http://" + window.location.hostname + ":5000/api/articles?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&mediatopic=" + mediatopic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
         dataType: "json",
         success: function (json) {
             var tags_anc = '', tags_dir = '', tags_user = '';
@@ -387,10 +286,6 @@ $('#search_start').click(function () {
 
 function parse_articles(page_num) {
     var section = $('#slug_value').text();
-    var split = $('.activesplit').parent().attr('id');
-    if ((split == null) || (split === "all")) {
-        split = "";
-    }
     var q = $('#query').val();
     var corpus = $('.activelan').parent().attr('id');
     var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
@@ -414,7 +309,7 @@ function parse_articles(page_num) {
     }
     $.ajax({
         type: "GET",
-        url: "http://"+window.location.hostname+":5000/api/articles?nPerPage=10&page=" + page_num + "&q=" + q + "&corpus=" + corpus + "&mediatopic=" + mediatopic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section + "&split=" + split,
+        url: "http://" + window.location.hostname + ":5000/api/articles?nPerPage=10&page=" + page_num + "&q=" + q + "&corpus=" + corpus + "&mediatopic=" + mediatopic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
         dataType: "json",
         success: function (json) {
             var tags_anc = '', tags_dir = '', tags_user = '';
@@ -481,7 +376,7 @@ $(document).on("click", "#tiles > li", function () {
         }
         $.ajax({
             type: "GET",
-            url: "http://"+window.location.hostname+":5000/api/article/xml?corpus=" + corpus + "&articleId=" + $(this).attr('data-id'),
+            url: "http://" + window.location.hostname + ":5000/api/article/xml?corpus=" + corpus + "&articleId=" + $(this).attr('data-id'),
             dataType: "json",
             success: function (json) {
                 LoadXMLString('xml_content', json.xml);
@@ -506,7 +401,7 @@ $("#myModal").on("click", ".btn-default", function (e) {
         $('#html_content').hide();
         $.ajax({
             type: "GET",
-            url: "http://"+window.location.hostname+":5000/api/article/xml?corpus=" + corpus + "&articleId=" + $(this).attr('data-id'),
+            url: "http://" + window.location.hostname + ":5000/api/article/xml?corpus=" + corpus + "&articleId=" + $(this).attr('data-id'),
             dataType: "json",
             success: function (json) {
                 LoadXMLString('xml_content', json.xml);
@@ -539,7 +434,7 @@ function parse_sections_root() {
     var corpus = $('.activelan').parent().attr('id');
     $.ajax({
         type: "GET",
-        url: "http://"+window.location.hostname+":5000/api/section/root/children?nPerPage=20&page=1&corpus=" + corpus,
+        url: "http://" + window.location.hostname + ":5000/api/section/root/children?nPerPage=20&page=1&corpus=" + corpus,
         dataType: "json",
         success: function (json) {
             $('#done_section').attr('data-delimeter', json.delimiter);
@@ -577,7 +472,7 @@ function parse_sections_root_page(page) {
     var corpus = $('.activelan').parent().attr('id');
     $.ajax({
         type: "GET",
-        url: "http://"+window.location.hostname+":5000/api/section/root/children?nPerPage=20&page=" + page + "&corpus=" + corpus,
+        url: "http://" + window.location.hostname + ":5000/api/section/root/children?nPerPage=20&page=" + page + "&corpus=" + corpus,
         dataType: "json",
         success: function (json) {
             $('#loading_slugline').hide();
@@ -599,7 +494,7 @@ function parse_section_level(id) {
     var corpus = $('.activelan').parent().attr('id');
     $.ajax({
         type: "GET",
-        url: "http://"+window.location.hostname+":5000/api/section/" + id + "/children?nPerPage=20&page=1&corpus=" + corpus,
+        url: "http://" + window.location.hostname + ":5000/api/section/" + id + "/children?nPerPage=20&page=1&corpus=" + corpus,
         dataType: "json",
         success: function (json) {
             $('#loading_slugline').hide();
@@ -640,7 +535,7 @@ function parse_section_level_page(page, id) {
     var corpus = $('.activelan').parent().attr('id');
     $.ajax({
         type: "GET",
-        url: "http://"+window.location.hostname+":5000/api/section/" + id + "/children?nPerPage=20&page=" + page + "&corpus=" + corpus,
+        url: "http://" + window.location.hostname + ":5000/api/section/" + id + "/children?nPerPage=20&page=" + page + "&corpus=" + corpus,
         dataType: "json",
         success: function (json) {
             $('#loading_slugline').hide();
@@ -702,7 +597,7 @@ $("#tiles").on("click", ".delete_tag", function (e) {
     }
     $.ajax({
         type: "PUT",
-        url: "http://"+window.location.hostname+":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&mediatopic=" + mediatopic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#de796d');
@@ -734,7 +629,7 @@ $("#tiles").on("click", ".undo_tag", function (e) {
 
     $.ajax({
         type: "PUT",
-        url: "http://"+window.location.hostname+":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&mediatopic=" + mediatopic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#ddd');
@@ -764,7 +659,7 @@ $("#myModal").on("click", ".undo_tag", function (e) {
 
     $.ajax({
         type: "PUT",
-        url: "http://"+window.location.hostname+":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&mediatopic=" + mediatopic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#ddd');
@@ -794,7 +689,7 @@ $("#myModal").on("click", ".delete_tag", function (e) {
 
     $.ajax({
         type: "PUT",
-        url: "http://"+window.location.hostname+":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&mediatopic=" + mediatopic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#de796d');
@@ -809,7 +704,7 @@ $("#myModal").on("click", ".delete_tag", function (e) {
 $("#tiles").on("click", ".topic_add", function (e) {
     e.stopPropagation();
     var options_article = {
-        url: "http://"+window.location.hostname+":5000/api/topics?corpus=apa&association=why:direct",
+        url: "http://" + window.location.hostname + ":5000/api/topics?corpus=apa&association=why:direct",
         getValue: "search",
         minCharNumber: 2,
         list: {
@@ -845,10 +740,10 @@ $("#tiles").on("click", ".topic_add", function (e) {
 $('.radio input').click(function () {
     var corpus = $('.activelan').parent().attr('id');
     if ($(this).val() === "why:ancestor") {
-        options.url = "http://"+window.location.hostname+":5000/api/topics?corpus=" + corpus + "&association=why:ancestor";
+        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=why:ancestor";
     }
     else {
-        options.url = "http://"+window.location.hostname+":5000/api/topics?corpus=" + corpus + "&association=why:direct";
+        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=why:direct";
     }
     $("#topics_autocomplete").val("").easyAutocomplete(options);
 });
