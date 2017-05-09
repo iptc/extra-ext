@@ -1,7 +1,8 @@
 import math
+import json
 from datetime import datetime
 
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 from flask_cors import CORS
 from section_nodes import Node
@@ -105,7 +106,6 @@ class Articles(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('q', type=str, required=False)
         parser.add_argument('corpus', type=str, required=True)
-        parser.add_argument('split', type=str, required=False)
         parser.add_argument('excluded', type=str, required=False)
         parser.add_argument('page', type=int, required=False)
         parser.add_argument('nPerPage', type=int, required=False)
@@ -153,8 +153,6 @@ class Articles(Resource):
                 {'term': {'mediatopics.id': media_topic_id}},
                 {'term': {'mediatopics.association': args['association']}}
             ]
-            if not (args['split'] is None or args['split'] == 'all' or args['split'] == ''):
-                must_query.append({'term': {'mediatopics.split': args['split']}})
 
             if args['excluded'] == 'true':
                 must_query.append({'term': {'mediatopics.exclude': args['excluded']}})
@@ -251,6 +249,36 @@ class Topics(Resource):
             media_topic['doc_count'] = bin['doc_count']
             response.append(media_topic)
         return response
+
+    def put(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('corpus', type=str, required=True)
+        parser.add_argument('article_id', type=str, required=True)
+
+        args = parser.parse_args()
+        corpus = args['corpus']
+        article_id = args['article_id']
+
+        topic = json.loads(request.data)
+
+        article = es.get(index=corpus, id=article_id, doc_type='articles')
+        if article is None:
+            return {'msg': 'article ' + article_id + ' does not exist. Failed to add user defined topic.'}
+
+        media_topics = article['_source']['mediatopics']
+        # update topics set
+        exists = False
+        for media_topic in media_topics:
+            if media_topic['id'] == topic['id']:
+                exists = True
+                break
+
+        if not exists:
+            media_topics.append(topic)
+            body = {'doc': {'mediatopics': media_topics}}
+            es.update(index=corpus, doc_type='articles', id=article_id, body=body)
+
+        return {'msg': 'article ' + article_id + ' has been annotated with ' + topic['id']}
 
 
 class Statistics(Resource):
