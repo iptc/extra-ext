@@ -71,9 +71,12 @@ public class DocumentsResource {
 		try {			
 			
 			List<String> fields = new ArrayList<String>();
-			fields.add("title");
-			fields.add("body");
-			fields.add("slugline");
+			fields.add("*");
+			//fields.add("title");
+			//fields.add("headline");
+			//fields.add("body");
+			//fields.add("slugline");
+			
 			/*
 			Corpus corpus = corporaDAO.get(corpusId);
 			if(corpus == null) {
@@ -201,10 +204,10 @@ public class DocumentsResource {
 	private QueryBuilder getTopicQuery(String topicId) {
 		
 		BoolQueryBuilder bqb = boolQuery();
-		bqb.must(termQuery("direct_media_topics.id", topicId));
-		bqb.must(termQuery("direct_media_topics.exclude", false));
+		bqb.must(termQuery("direct_topics.id", topicId));
+		bqb.must(termQuery("direct_topics.exclude", false));
 		
-		QueryBuilder qb = nestedQuery("direct_media_topics", bqb, ScoreMode.Total);
+		QueryBuilder qb = nestedQuery("direct_topics", bqb, ScoreMode.Total);
 		return qb;
 	}
 	

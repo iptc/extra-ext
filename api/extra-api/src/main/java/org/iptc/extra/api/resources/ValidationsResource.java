@@ -22,8 +22,10 @@ import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
+import org.iptc.extra.core.cql.tree.ErrorMessageNode;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.utils.TreeUtils;
+import org.iptc.extra.core.cql.tree.visitor.ExtraValidator;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.utils.TextUtils;
 
@@ -52,23 +54,25 @@ public class ValidationsResource {
 			rule.setQuery(query);
 			
 			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+			Node root = syntaxTree.getRootNode();
+			
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 				response.put("valid", "false");
-				response.put("message", StringUtils.join(syntaxTree.getErrors(), " \n "));
+				response.put("message", StringUtils.join(syntaxTree.getErrors(), "</br>"));
 			}
-			else {
-				Node root = syntaxTree.getRootNode();
-				
-				if(!TreeUtils.isTreeValid(root)) {
-					List<Node> invalidNodes = TreeUtils.getInvalidNodes(root);
-					response.put("valid", "false");
-					response.put("message", "The rule has invalid operators/relations: " + StringUtils.join(invalidNodes, ", "));
-				}
-				else {
+			else {	
+				List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root);
+				if(invalidNodes.isEmpty()) {
 					response.put("valid", "true");
 					response.put("message", "The rule has correct syntax.");
 				}
-				
+				else {
+					response.put("valid", "false");
+					response.put("message", "The rule has invalid operators/relations: </br> - " + StringUtils.join(invalidNodes, "</br> - "));
+				}
+			}
+			
+			if(root != null) {
 				QueryBuilder qb = mapper.toElasticSearch(root);
 				if(qb != null) {
 					String esDSL = "{ \"query\": " + qb.toString() + "}";
@@ -92,7 +96,6 @@ public class ValidationsResource {
 				
 				Set<String> indices = TreeUtils.getIndices(root);
 				response.put("indices", indices);
-				
 			}
 			
 			response.put("rule", rule);

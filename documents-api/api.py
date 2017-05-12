@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 from flask_cors import CORS
-from section_nodes import Node
+from sections import Node
 
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
@@ -15,7 +15,7 @@ from elasticsearch_dsl.aggs import A
 es = Elasticsearch(hosts = [{'host': 'elasticsearch', 'port': 9200}])
 
 languages = {'apa': 'german', 'reuters': 'english'}
-delimiters = {'apa': '/', 'reuters': '-'}
+delimiters = {'apa': '/', 'reuters': '/'}
 
 app = Flask(__name__, static_url_path='')
 
@@ -23,76 +23,73 @@ CORS(app, resources={'/api/*': {'origins': '*'}})
 api = Api(app, prefix='/api')
 
 
-class Article(Resource):
-    def get(self, article_id):
+class Document(Resource):
+    def get(self, document_id):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
         args = parser.parse_args()
         corpus = args['corpus']
 
-        article = es.get(index=corpus, id=article_id, doc_type='articles')
+        article = es.get(index=corpus, id=document_id, doc_type='documents')
         return {'article': article['_source']}
 
-    def put(self, article_id):
+    def put(self, document_id):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
         parser.add_argument('exclude', type=str, required=True)
-        parser.add_argument('mediatopic', type=str, required=True)
+        parser.add_argument('topic', type=str, required=True)
         parser.add_argument('association', type=str, required=False)
 
         args = parser.parse_args()
         corpus = args['corpus']
         exclude = args['exclude']
-        media_topic_id = args['mediatopic']
+        topic_id = args['topic']
         association = args['association']
 
-        if media_topic_id is None or media_topic_id == '':
-            return {'exclude': 'false', 'msg': 'media topic is unset for ' + article_id}
+        if topic_id is None or topic_id == '':
+            return {'exclude': 'false', 'msg': ' topic is unset for ' + document_id}
 
         if exclude != 'true' and exclude != 'false':
-            return {'exclude': 'false', 'msg': 'article ' + article_id + ' failed to be flagged for ' + media_topic_id}
+            return {'exclude': 'false', 'msg': 'document ' + document_id + ' failed to be flagged for ' + topic_id}
 
-        article = es.get(index=corpus, id=article_id, doc_type='articles')
-        if article is None:
-            return {'exclude': 'false', 'msg': 'article ' + article_id + ' does not exist. Failed to be flagged.'}
+        document = es.get(index=corpus, id=document_id, doc_type='documents')
+        if document is None:
+            return {'exclude': 'false', 'msg': 'article ' + document_id + ' does not exist. Failed to be flagged.'}
 
         # update topics set
-        media_topics = article['_source']['mediatopics']
-        for media_topic in media_topics:
-            if media_topic['id'] == media_topic_id:
-                media_topic['exclude'] = exclude
+        topics = document['_source']['topics']
+        for topic in topics:
+            if topic['id'] == topic_id:
+                topic['exclude'] = exclude
 
         # update topics subset
-        sbt = 'direct_media_topics' if (association is None or association == 'why:direct') else 'ancestor_media_topics'
-        media_topics_subset = article['_source'][sbt]
-        for media_topic in media_topics_subset:
-            if media_topic['id'] == media_topic_id:
-                media_topic['exclude'] = exclude
+        sbt = 'direct_topics' if (association is None or association == 'why:direct') else 'ancestor_topics'
+        topics_subset = document['_source'][sbt]
+        for topic in topics_subset:
+            if topic['id'] == topic_id:
+                topic['exclude'] = exclude
 
-        body = {'doc' : {'mediatopics' : media_topics, sbt : media_topics_subset}}
+        body = {'doc' : {'topics' : topics, sbt : topics_subset}}
 
-        es.update(index=corpus, doc_type='articles', id=article_id, body=body)
-        return {'msg': 'article ' + article_id + ' is flagged as exclude:' + exclude + ' for ' + media_topic_id}
+        es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+        return {'msg': 'document ' + document_id + ' is flagged as exclude:' + exclude + ' for ' + topic_id}
 
 
-class ArticleXML(Resource):
+class DocumentFile(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
-        parser.add_argument('articleId', type=str, required=True)
+        parser.add_argument('documentId', type=str, required=True)
 
         args = parser.parse_args()
         corpus = args['corpus']
-        article_id = args['articleId']
+        document_id = args['documentId']
 
-        article = es.get(index=corpus, id=article_id, doc_type='articles')
+        article = es.get(index=corpus, id=document_id, doc_type='documents')
         if article is None:
             return {'xml' : ''}
 
         filename = article['_source']['filename']
-        if corpus == 'reuters':
-            filename += '.nml2.xml'
-
         response = {}
         with open('xml/' + corpus + '/' + filename, 'r') as f:
             xml_content = f.read()
@@ -101,7 +98,7 @@ class ArticleXML(Resource):
         return response
 
 
-class Articles(Resource):
+class Documents(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('q', type=str, required=False)
@@ -111,7 +108,7 @@ class Articles(Resource):
         parser.add_argument('nPerPage', type=int, required=False)
         parser.add_argument('since', type=int, required=False)
         parser.add_argument('until', type=int, required=False)
-        parser.add_argument('mediatopic', type=str, required=False)
+        parser.add_argument('topic', type=str, required=False)
         parser.add_argument('association', type=str, required=False)
         parser.add_argument('section', type=str, required=False)
 
@@ -123,43 +120,44 @@ class Articles(Resource):
         delimiter = delimiters[corpus]
 
         search = search.index(corpus)
-        search = search.doc_type('articles')
+        search = search.doc_type('documents')
 
         page = args['page'] if args['page'] is not None else 1
         n_per_page = args['nPerPage'] if args['nPerPage'] is not None else 10
-        search = search.sort('-contentCreated')
+        search = search.sort('-versionCreated')
         search = search[(page-1)*n_per_page : page * n_per_page]
-        search = search.source(exclude=['direct_media_topics', 'ancestor_media_topics'])
+        search = search.source(excludes=['direct_topics', 'ancestor_topics'])
 
         if args['q'] is not None and args['q'] is not '':
-            search = search.query('bool', must=Q('query_string', query=args['q'], fields=['title^3', 'body^2', 'slugline'],
-                analyzer=lang, analyze_wildcard='true', default_operator='or'))
+            search = search.query('bool', must=Q('query_string', query=args['q'], default_field='stemmed_text_content',
+            analyzer=lang, analyze_wildcard='true', default_operator='or'))
             search = search.highlight_options(number_of_fragments=0, pre_tags=['<span class="highlight">'], post_tags=['</span>'])
-            search = search.highlight('title', 'body', fragment_size=0)
-            search = search.sort('_score', '-contentCreated')
+            search = search.highlight('headline', fragment_size=0, require_field_match=False,)
+            search = search.highlight('body', fragment_size=0, require_field_match=False,)
+            search = search.sort('_score', '-versionCreated')
 
         filters = []
         if args['since'] is not None and args['since'] is not 0:
             since = datetime.fromtimestamp(args['since']).isoformat()
-            filters.append(Q('range', contentCreated={'gte':since}))
+            filters.append(Q('range', versionCreated={'gte':since}))
 
         if args['until'] is not None and args['until'] is not 0:
             until = datetime.fromtimestamp(args['until']).isoformat()
-            filters.append(Q('range', contentCreated={'lt':until}))
+            filters.append(Q('range', versionCreated={'lt':until}))
 
-        media_topic_id = args['mediatopic']
-        if (media_topic_id is not None and media_topic_id is not '') and args['association'] is not None:
+        topic_id = args['topic']
+        if (topic_id is not None and topic_id is not '') and args['association'] is not None:
             must_query = [
-                {'term': {'mediatopics.id': media_topic_id}},
-                {'term': {'mediatopics.association': args['association']}}
+                {'term': {'topics.id': topic_id}},
+                {'term': {'topics.association': args['association']}}
             ]
 
             if args['excluded'] == 'true':
-                must_query.append({'term': {'mediatopics.exclude': args['excluded']}})
+                must_query.append({'term': {'topics.exclude': args['excluded']}})
 
-            media_topic_query = {
+            topic_query = {
                 'nested': {
-                    'path': 'mediatopics',
+                    'path': 'topics',
                     'query': {
                         'bool': {
                             'must': must_query
@@ -167,7 +165,7 @@ class Articles(Resource):
                     }
                 }
             }
-            filters.append(media_topic_query)
+            filters.append(topic_query)
 
         if args['section'] is not None and args['section'] != '':
             filters.append(Q('match', slugline=args['section']))
@@ -177,31 +175,31 @@ class Articles(Resource):
 
         response = search.execute()
 
-        articles = []
+        documents = []
         for hit in response:
-            article = hit.to_dict()
+            document = hit.to_dict()
             if 'highlight' in hit.meta:
-                if 'title' in hit.meta.highlight:
-                    for title_fragment in hit.meta.highlight.title:
-                        article['title'] = title_fragment
+                if 'headline' in hit.meta.highlight:
+                    for headline_fragment in hit.meta.highlight.headline:
+                        document['headline'] = headline_fragment
                         break
                 if 'body' in hit.meta.highlight:
                     for body_fragment in hit.meta.highlight.body:
-                        article['body'] = body_fragment
+                        document['body'] = body_fragment
                         break
-            if (media_topic_id is not None and media_topic_id is not '') and args['association'] is not None:
-                for media_topic in article['mediatopics']:
-                    if media_topic['id'] == media_topic_id and 'exclude' in media_topic and media_topic['exclude'] == 'true':
-                        article['exclude'] = 'true'
+            if (topic_id is not None and topic_id is not '') and args['association'] is not None:
+                for topic in document['topics']:
+                    if topic['id'] == topic_id and 'exclude' in topic and topic['exclude'] == 'true':
+                        document['exclude'] = 'true'
                         break
-            articles.append(article)
+            documents.append(document)
 
         return {
             'found': search.count(),
             'page': page,
             'nPerPage': n_per_page,
             'lastPage': math.ceil(search.count() / n_per_page) if n_per_page is not 0 else 1,
-            'articles': articles,
+            'documents': documents,
             'from': (page - 1) * n_per_page,
             'to': page * n_per_page,
             'delimiter':delimiter
@@ -212,19 +210,18 @@ class Topics(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
-        parser.add_argument('split', type=str, required=False)
         parser.add_argument('association', type=str, required=False)
 
         args = parser.parse_args()
         corpus = args['corpus']
 
-        field = 'direct_media_topics'
+        field = 'direct_topics'
         if args['association'] is not None and args['association'] == 'why:ancestor':
-            field = 'ancestor_media_topics'
+            field = 'ancestor_topics'
 
         search = Search(using=es)
         search = search.index(corpus)
-        search = search.doc_type('articles')
+        search = search.doc_type('documents')
 
         search = search[0:0]
         aggregations = {
@@ -244,10 +241,10 @@ class Topics(Resource):
         response = []
         for bin in buckets:
             id = bin['key']
-            result = es.get(index=corpus, id=id, doc_type='media_topics')
-            media_topic = result['_source']
-            media_topic['doc_count'] = bin['doc_count']
-            response.append(media_topic)
+            result = es.get(index=corpus, id=id, doc_type='topics')
+            topic = result['_source']
+            topic['doc_count'] = bin['doc_count']
+            response.append(topic)
         return response
 
     def put(self):
@@ -257,28 +254,28 @@ class Topics(Resource):
 
         args = parser.parse_args()
         corpus = args['corpus']
-        article_id = args['article_id']
+        document_id = args['document_id']
 
-        topic = json.loads(request.data)
+        new_topic = json.loads(request.data)
 
-        article = es.get(index=corpus, id=article_id, doc_type='articles')
+        article = es.get(index=corpus, id=document_id, doc_type='documents')
         if article is None:
-            return {'msg': 'article ' + article_id + ' does not exist. Failed to add user defined topic.'}
+            return {'msg': 'article ' + document_id + ' does not exist. Failed to add user defined topic.'}
 
-        media_topics = article['_source']['mediatopics']
+        topics = article['_source']['topics']
         # update topics set
         exists = False
-        for media_topic in media_topics:
-            if media_topic['id'] == topic['id']:
+        for topic in topics:
+            if topic['id'] == new_topic['id']:
                 exists = True
                 break
 
         if not exists:
-            media_topics.append(topic)
-            body = {'doc': {'mediatopics': media_topics}}
-            es.update(index=corpus, doc_type='articles', id=article_id, body=body)
+            topics.append(new_topic)
+            body = {'doc': {'topics': topics}}
+            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
 
-        return {'msg': 'article ' + article_id + ' has been annotated with ' + topic['id']}
+        return {'msg': 'article ' + document_id + ' has been annotated with ' + new_topic['id']}
 
 
 class Statistics(Resource):
@@ -293,7 +290,7 @@ class Statistics(Resource):
 
         search = Search(using=es)
         search = search.index(corpus)
-        search = search.doc_type('articles')
+        search = search.doc_type('documents')
 
         search = search[0:0]
         search.aggs.metric(field, 'stats', field=field)
@@ -317,7 +314,7 @@ class Top(Resource):
 
         search = Search(using=es)
         search = search.index(corpus)
-        search = search.doc_type('articles')
+        search = search.doc_type('documents')
 
         search = search[0:0]
 
@@ -368,7 +365,7 @@ class TopTerms(Resource):
 
         search = Search(using=es)
         search = search.index(corpus)
-        search = search.doc_type('articles')
+        search = search.doc_type('documents')
 
         search = search[0:10]
 
@@ -479,7 +476,8 @@ class Sections(Resource):
 
         query = args['q']
         if query is not None and query != '':
-            search = search.query(Q('simple_query_string',query=args['q'], fields=['name'], analyzer='path-analyzer', default_operator='AND'))
+            search = search.query(Q('simple_query_string',query=args['q'], fields=['name'], analyzer='path-analyzer',
+                                    default_operator='AND'))
 
         response = search.execute()
 
@@ -523,9 +521,9 @@ def raise_error(error):
 
 
 if __name__ == '__main__':
-    api.add_resource(Articles, '/articles')
-    api.add_resource(Article, '/articles/<article_id>')
-    api.add_resource(ArticleXML, '/article/xml')
+    api.add_resource(Documents, '/documents')
+    api.add_resource(Document, '/documents/<document_id>')
+    api.add_resource(DocumentFile, '/documents/xml')
     api.add_resource(Topics, '/topics')
     api.add_resource(Statistics, '/stats')
     api.add_resource(Top, '/top')

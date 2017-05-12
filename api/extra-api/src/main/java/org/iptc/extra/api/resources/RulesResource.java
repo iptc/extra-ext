@@ -225,6 +225,10 @@ public class RulesResource {
 		
 		dao.update(q, ops);
 		
+		if(annotation != null) {
+			//TODO: save annotation
+		}
+		
 		return Response.status(201).entity(rule).build();
 
 	}

@@ -32,7 +32,7 @@ $(function () {
     $("#topics_autocomplete").easyAutocomplete(options);
     $.ajax({
         type: "GET",
-        url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=contentCreated",
+        url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=versionCreated",
         dataType: "json",
         success: function (json) {
             $("#date_range").daterangepicker({
@@ -109,7 +109,7 @@ $("#settings").on("click", ".sub1", function (e) {
             options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=apa&association=" + document.querySelector('input[name="radio"]:checked').value;
             $.ajax({
                 type: "GET",
-                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=contentCreated",
+                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=versionCreated",
                 dataType: "json",
                 success: function (json) {
                     $("#date_range").daterangepicker({
@@ -134,7 +134,7 @@ $("#settings").on("click", ".sub1", function (e) {
             options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=reuters&association=" + document.querySelector('input[name="radio"]:checked').value;
             $.ajax({
                 type: "GET",
-                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=reuters&field=contentCreated",
+                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=reuters&field=versionCreated",
                 dataType: "json",
                 success: function (json) {
                     $("#date_range").daterangepicker({
@@ -166,13 +166,13 @@ $('#search_start').click(function () {
     var section = $('#slug_value').text();
     var q = $('#query').val();
     var corpus = $('.activelan').parent().attr('id');
-    var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (mediatopic != null) {
-        mediatopic = mediatopic[mediatopic.length - 1].slice(1, -1);
-        mediatopic = "medtop:" + mediatopic;
+    var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+    if (topic != null) {
+        topic = topic[topic.length - 1].slice(1, -1);
+        topic = "medtop:" + topic;
     }
     else {
-        mediatopic = "";
+        topic = "";
     }
     var association = document.querySelector('input[name="radio"]:checked').value;
     var json_date = $("#date_range").val();
@@ -187,70 +187,70 @@ $('#search_start').click(function () {
     }
     $.ajax({
         type: "GET",
-        url: "http://" + window.location.hostname + ":5000/api/articles?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&mediatopic=" + mediatopic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
+        url: "http://" + window.location.hostname + ":5000/api/documents?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&topic=" + topic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
         dataType: "json",
         success: function (json) {
             var tags_anc = '', tags_dir = '', tags_user = '';
             var date = '', slugline = '', style_exclude = '';
-            for (var i = 0; i < json.articles.length; i++) {
+            for (var i = 0; i < json.documents.length; i++) {
                 tags_anc = '', tags_dir = '', slugline = '', tags_user = '';
-                for (var k = 0; k < json.articles[i].mediatopics.length; k++) {
-                    if (json.articles[i].mediatopics[k].association === "why:ancestor") {
-                        if (json.articles[i].mediatopics[k].exclude === "true") {
-                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                for (var k = 0; k < json.documents[i].topics.length; k++) {
+                    if (json.documents[i].topics[k].association === "why:ancestor") {
+                        if (json.documents[i].topics[k].exclude === "true") {
+                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_anc = tags_anc + '<li><a href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
-                    else if (json.articles[i].mediatopics[k].association === "why:direct") {
-                        if (json.articles[i].mediatopics[k].exclude === "true") {
-                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                    else if (json.documents[i].topics[k].association === "why:direct") {
+                        if (json.documents[i].topics[k].exclude === "true") {
+                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_dir = tags_dir + '<li><a href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
                     else {
-                        if (json.articles[i].mediatopics[k].exclude === "true") {
-                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                        if (json.documents[i].topics[k].exclude === "true") {
+                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_user = tags_user + '<li><a href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
                 }
-                date = json.articles[i].contentCreated.split('T')[0] + ' ' + json.articles[i].contentCreated.split('T')[1].substr(0, 5);
+                date = json.documents[i].versionCreated.split('T')[0] + ' ' + json.documents[i].versionCreated.split('T')[1].substr(0, 5);
 
-                for (var l = 0; l < json.articles[i].slugline.split(json.delimiter).length; l++) {
-                    slugline = slugline + '<li><a href="javascript:void(0)">' + json.articles[i].slugline.split(json.delimiter)[l] + '</a></li>'
+                for (var l = 0; l < json.documents[i].slugline.split(json.delimiter).length; l++) {
+                    slugline = slugline + '<li><a href="javascript:void(0)">' + json.documents[i].slugline.split(json.delimiter)[l] + '</a></li>'
                 }
-                if (json.articles[i].exclude === "true") {
+                if (json.documents[i].exclude === "true") {
                     style_exclude = "border:2px solid #d0402f";
                 }
                 else {
                     style_exclude = "";
                 }
                 if (tags_user !== "") {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.articles[i].id + '"><div class="hidden_body">' + json.articles[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.articles[i].title + '</h3><p>' + json.articles[i].description + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Media Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Media Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Media Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                 }
                 else {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.articles[i].id + '"><div class="hidden_body">' + json.articles[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.articles[i].title + '</h3><p>' + json.articles[i].description + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Media Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Media Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                 }
             }
             $('#loading').hide();
             $('.well,#info').show();
-            var info_text = json.found + ' Articles';
+            var info_text = json.found + ' Documents';
 
             if ($('#query').val() !== "") {
                 info_text = info_text + ' for Query "' + $('#query').val() + '"';
             }
             info_text = info_text + ' on corpus ' + $('.activelan').parent().attr('id').toUpperCase();
 
-            var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-            if (mediatopic != null) {
-                var mediatopicname = $('#topics_autocomplete').val().replace(mediatopic, '').slice(0, -1);
-                info_text = info_text + " associated with " + mediatopicname + " media topic";
+            var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+            if (topic != null) {
+                var topicname = $('#topics_autocomplete').val().replace(topic, '').slice(0, -1);
+                info_text = info_text + " associated with " + topicname + " topic";
             }
 
             if (json_date !== "") {
@@ -271,7 +271,7 @@ $('#search_start').click(function () {
                         abort();
                         $('#loading').show();
                         $('#tiles').empty();
-                        parse_articles(page);
+                        parse_documents(page);
                     }
                 });
             }
@@ -284,17 +284,17 @@ $('#search_start').click(function () {
     });
 });
 
-function parse_articles(page_num) {
+function parse_documents(page_num) {
     var section = $('#slug_value').text();
     var q = $('#query').val();
     var corpus = $('.activelan').parent().attr('id');
-    var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (mediatopic != null) {
-        mediatopic = mediatopic[mediatopic.length - 1].slice(1, -1);
-        mediatopic = "medtop:" + mediatopic;
+    var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+    if (topic != null) {
+        topic = topic[topic.length - 1].slice(1, -1);
+        topic = "medtop:" + topic;
     }
     else {
-        mediatopic = "";
+        topic = "";
     }
     var association = document.querySelector('input[name="radio"]:checked').value;
     var json_date = $("#date_range").val();
@@ -309,54 +309,54 @@ function parse_articles(page_num) {
     }
     $.ajax({
         type: "GET",
-        url: "http://" + window.location.hostname + ":5000/api/articles?nPerPage=10&page=" + page_num + "&q=" + q + "&corpus=" + corpus + "&mediatopic=" + mediatopic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
+        url: "http://" + window.location.hostname + ":5000/api/documents?nPerPage=10&page=" + page_num + "&q=" + q + "&corpus=" + corpus + "&topic=" + topic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
         dataType: "json",
         success: function (json) {
             var tags_anc = '', tags_dir = '', tags_user = '';
             var date = '', slugline = '', style_exclude = '';
-            for (var i = 0; i < json.articles.length; i++) {
+            for (var i = 0; i < json.documents.length; i++) {
                 tags_anc = '', tags_dir = '', slugline = '', tags_user = '';
-                for (var k = 0; k < json.articles[i].mediatopics.length; k++) {
-                    if (json.articles[i].mediatopics[k].association === "why:ancestor") {
-                        if (json.articles[i].mediatopics[k].exclude === "true") {
-                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                for (var k = 0; k < json.documents[i].topics.length; k++) {
+                    if (json.documents[i].topics[k].association === "why:ancestor") {
+                        if (json.documents[i].topics[k].exclude === "true") {
+                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_anc = tags_anc + '<li><a href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
-                    else if (json.articles[i].mediatopics[k].association === "why:direct") {
-                        if (json.articles[i].mediatopics[k].exclude === "true") {
-                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                    else if (json.documents[i].topics[k].association === "why:direct") {
+                        if (json.documents[i].topics[k].exclude === "true") {
+                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_dir = tags_dir + '<li><a href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
                     else {
-                        if (json.articles[i].mediatopics[k].exclude === "true") {
-                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                        if (json.documents[i].topics[k].exclude === "true") {
+                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_user = tags_user + '<li><a href="' + json.articles[i].mediatopics[k].url + '" target="_blank">' + json.articles[i].mediatopics[k].name + ' (' + json.articles[i].mediatopics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.articles[i].id + '" data-association="' + json.articles[i].mediatopics[k].association + '" data-topic_id="' + json.articles[i].mediatopics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
                 }
-                date = json.articles[i].contentCreated.split('T')[0] + ' ' + json.articles[i].contentCreated.split('T')[1].substr(0, 5);
-                for (var l = 0; l < json.articles[i].slugline.split(json.delimiter).length; l++) {
-                    slugline = slugline + '<li><a href="#">' + json.articles[i].slugline.split(json.delimiter)[l] + '</a></li>'
+                date = json.documents[i].versionCreated.split('T')[0] + ' ' + json.documents[i].versionCreated.split('T')[1].substr(0, 5);
+                for (var l = 0; l < json.documents[i].slugline.split(json.delimiter).length; l++) {
+                    slugline = slugline + '<li><a href="#">' + json.documents[i].slugline.split(json.delimiter)[l] + '</a></li>'
                 }
-                if (json.articles[i].exclude === "true") {
+                if (json.documents[i].exclude === "true") {
                     style_exclude = "border:2px solid #d0402f";
                 }
                 else {
                     style_exclude = "";
                 }
                 if (tags_user !== "") {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.articles[i].id + '"><div class="hidden_body">' + json.articles[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.articles[i].title + '</h3><p>' + json.articles[i].description + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Media Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Media Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Media Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                 }
                 else {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.articles[i].id + '"><div class="hidden_body">' + json.articles[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.articles[i].title + '</h3><p>' + json.articles[i].description + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Media Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Media Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                 }
             }
             $('#loading').hide();
@@ -376,7 +376,7 @@ $(document).on("click", "#tiles > li", function () {
         }
         $.ajax({
             type: "GET",
-            url: "http://" + window.location.hostname + ":5000/api/article/xml?corpus=" + corpus + "&articleId=" + $(this).attr('data-id'),
+            url: "http://" + window.location.hostname + ":5000/api/documents/xml?corpus=" + corpus + "&documentId=" + $(this).attr('data-id'),
             dataType: "json",
             success: function (json) {
                 LoadXMLString('xml_content', json.xml);
@@ -401,7 +401,7 @@ $("#myModal").on("click", ".btn-default", function (e) {
         $('#html_content').hide();
         $.ajax({
             type: "GET",
-            url: "http://" + window.location.hostname + ":5000/api/article/xml?corpus=" + corpus + "&articleId=" + $(this).attr('data-id'),
+            url: "http://" + window.location.hostname + ":5000/api/documents/xml?corpus=" + corpus + "&documentId=" + $(this).attr('data-id'),
             dataType: "json",
             success: function (json) {
                 LoadXMLString('xml_content', json.xml);
@@ -585,25 +585,25 @@ $("#tiles").on("click", ".delete_tag", function (e) {
     var id = $(this).attr('data-parent_id');
     var corpus = $('.activelan').parent().attr('id');
     var association = $(this).attr('data-association');
-    var mediatopic = $(this).attr('data-topic_id');
+    var topic = $(this).attr('data-topic_id');
     var $this = $(this);
-    var mediatopic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (mediatopic_user != null) {
-        mediatopic_user = mediatopic_user[mediatopic_user.length - 1].slice(1, -1);
-        mediatopic_user = "medtop:" + mediatopic_user;
+    var topic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+    if (topic_user != null) {
+        topic_user = topic_user[topic_user.length - 1].slice(1, -1);
+        topic_user = "medtop:" + topic_user;
     }
     else {
-        mediatopic_user = "";
+        topic_user = "";
     }
     $.ajax({
         type: "PUT",
-        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/documents/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&topic=" + topic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#de796d');
             $this.removeClass('delete_tag').addClass('undo_tag').attr('src', 'imgs/undo.png');
-            console.log(mediatopic + '----' + mediatopic_user);
-            if (mediatopic === mediatopic_user) {
+            console.log(topic + '----' + topic_user);
+            if (topic === topic_user) {
                 $('li[data-id="' + id + '"]').css('border', '2px solid #d0402f');
             }
         },
@@ -616,25 +616,25 @@ $("#tiles").on("click", ".undo_tag", function (e) {
     var id = $(this).attr('data-parent_id');
     var corpus = $('.activelan').parent().attr('id');
     var association = $(this).attr('data-association');
-    var mediatopic = $(this).attr('data-topic_id');
+    var topic = $(this).attr('data-topic_id');
     var $this = $(this);
-    var mediatopic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (mediatopic_user != null) {
-        mediatopic_user = mediatopic_user[mediatopic_user.length - 1].slice(1, -1);
-        mediatopic_user = "medtop:" + mediatopic_user;
+    var topic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+    if (topic_user != null) {
+        topic_user = topic_user[topic_user.length - 1].slice(1, -1);
+        topic_user = "medtop:" + topic_user;
     }
     else {
-        mediatopic_user = "";
+        topic_user = "";
     }
 
     $.ajax({
         type: "PUT",
-        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/documents/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&topic=" + topic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#ddd');
             $this.addClass('delete_tag').removeClass('undo_tag').attr('src', 'imgs/delete.png');
-            if (mediatopic === mediatopic_user) {
+            if (topic === topic_user) {
                 $('li[data-id="' + id + '"]').css('border', '4px solid #FAFAFA');
             }
         },
@@ -646,25 +646,25 @@ $("#myModal").on("click", ".undo_tag", function (e) {
     var id = $(this).attr('data-parent_id');
     var corpus = $('.activelan').parent().attr('id');
     var association = $(this).attr('data-association');
-    var mediatopic = $(this).attr('data-topic_id');
+    var topic = $(this).attr('data-topic_id');
     var $this = $(this);
-    var mediatopic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (mediatopic_user != null) {
-        mediatopic_user = mediatopic_user[mediatopic_user.length - 1].slice(1, -1);
-        mediatopic_user = "medtop:" + mediatopic_user;
+    var topic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+    if (topic_user != null) {
+        topic_user = topic_user[topic_user.length - 1].slice(1, -1);
+        topic_user = "medtop:" + topic_user;
     }
     else {
-        mediatopic_user = "";
+        topic_user = "";
     }
 
     $.ajax({
         type: "PUT",
-        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/documents/" + id + "?corpus=" + corpus + "&exclude=false&association=" + association + "&topic=" + topic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#ddd');
             $this.addClass('delete_tag').removeClass('undo_tag').attr('src', 'imgs/delete.png');
-            if (mediatopic === mediatopic_user) {
+            if (topic === topic_user) {
                 $('li[data-id="' + id + '"]').css('border', '4px solid #FAFAFA');
             }
         },
@@ -676,25 +676,25 @@ $("#myModal").on("click", ".delete_tag", function (e) {
     var id = $(this).attr('data-parent_id');
     var corpus = $('.activelan').parent().attr('id');
     var association = $(this).attr('data-association');
-    var mediatopic = $(this).attr('data-topic_id');
+    var topic = $(this).attr('data-topic_id');
     var $this = $(this);
-    var mediatopic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (mediatopic_user != null) {
-        mediatopic_user = mediatopic_user[mediatopic_user.length - 1].slice(1, -1);
-        mediatopic_user = "medtop:" + mediatopic_user;
+    var topic_user = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+    if (topic_user != null) {
+        topic_user = topic_user[topic_user.length - 1].slice(1, -1);
+        topic_user = "medtop:" + topic_user;
     }
     else {
-        mediatopic_user = "";
+        topic_user = "";
     }
 
     $.ajax({
         type: "PUT",
-        url: "http://" + window.location.hostname + ":5000/api/articles/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&mediatopic=" + mediatopic,
+        url: "http://" + window.location.hostname + ":5000/api/documents/" + id + "?corpus=" + corpus + "&exclude=true&association=" + association + "&topic=" + topic,
         dataType: "json",
         success: function () {
             $this.siblings('a').css('background-color', '#de796d');
             $this.removeClass('delete_tag').addClass('undo_tag').attr('src', 'imgs/undo.png');
-            if (mediatopic === mediatopic_user) {
+            if (topic === topic_user) {
                 $('li[data-id="' + id + '"]').css('border', '2px solid #d0402f');
             }
         },
@@ -752,15 +752,15 @@ $("#tiles").on("click", ".topics_autocomplete,[id^=eac-container-topics_autocomp
 });
 $("#tiles").on("click", ".topic_include", function (e) {
     e.stopPropagation();
-    var mediatopic = $('#topics_autocomplete_' + $(this).parents('li').index()).val();
-    if (mediatopic != null) {
-        var mediatopic_id = mediatopic.match(/(?:\()[^\(\)]*?(?:\))/g);
-        mediatopic_id = mediatopic_id[mediatopic_id.length - 1];
+    var topic = $('#topics_autocomplete_' + $(this).parents('li').index()).val();
+    if (topic != null) {
+        var topic_id = topic.match(/(?:\()[^\(\)]*?(?:\))/g);
+        topic_id = topic_id[topic_id.length - 1];
         if ($(this).parents('li').find('.user_defined_topics').length > 0) {
-            $(this).parents('li').find('.user_defined_topics .media_topic').append('<li><a href="http://cv.iptc.org/newscodes/mediatopic/' + mediatopic_id.slice(1, -1) + '?lang=de" target="_blank">' + mediatopic + '</a><img data-parent_id="' + $(this).parents('li').attr('data-id') + '" data-association="why:userdefined" data-topic_id="medtop:' + mediatopic_id + '" class="delete_tag" src="imgs/delete.png"></li>')
+            $(this).parents('li').find('.user_defined_topics .media_topic').append('<li><a href="http://cv.iptc.org/newscodes/mediatopic/' + topic_id.slice(1, -1) + '?lang=de" target="_blank">' + topic + '</a><img data-parent_id="' + $(this).parents('li').attr('data-id') + '" data-association="why:userdefined" data-topic_id="medtop:' + topic_id + '" class="delete_tag" src="imgs/delete.png"></li>')
         }
         else {
-            $(this).parents('li').find('.media_topics').eq(0).after('<div class="media_topics user_defined_topics"><p class="topics_title">User Defined Media Topics</p><ul class="media_topic"><li><a href="http://cv.iptc.org/newscodes/mediatopic/' + mediatopic_id.slice(1, -1) + '?lang=de" target="_blank">' + mediatopic + '</a><img data-parent_id="' + $(this).parents('li').attr('data-id') + '" data-association="why:userdefined" data-topic_id="medtop:' + mediatopic_id + '" class="delete_tag" src="imgs/delete.png"></li></ul></div>');
+            $(this).parents('li').find('.media_topics').eq(0).after('<div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic"><li><a href="http://cv.iptc.org/newscodes/mediatopic/' + topic_id.slice(1, -1) + '?lang=de" target="_blank">' + topic + '</a><img data-parent_id="' + $(this).parents('li').attr('data-id') + '" data-association="why:userdefined" data-topic_id="medtop:' + topic_id + '" class="delete_tag" src="imgs/delete.png"></li></ul></div>');
         }
     }
 });

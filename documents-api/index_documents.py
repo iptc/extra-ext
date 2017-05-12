@@ -160,32 +160,29 @@ def create_documents_mapping(es: Elasticsearch, index_name, doc_type, lang):
                     'title': {
                         'type': 'text',
                         'analyzer': lang + '_non_stemming_analyzer',
-                        'copy_to': 'text_content'
+                        'copy_to': ['text_content', 'stemmed_text_content', 'stemmed_title']
                     },
                     'stemmed_title': {
                         'type': 'text',
-                        'analyzer': lang + '_stemming_analyzer',
-                        'copy_to': 'stemmed_text_content'
+                        'analyzer': lang + '_stemming_analyzer'
                     },
                     'headline': {
                         'type': 'text',
                         'analyzer': lang + '_non_stemming_analyzer',
-                        'copy_to': 'text_content'
+                        'copy_to': ['text_content', 'stemmed_text_content', 'stemmed_headline']
                     },
                     'stemmed_headline': {
                         'type': 'text',
-                        'analyzer': lang + '_stemming_analyzer',
-                        'copy_to': 'stemmed_text_content'
+                        'analyzer': lang + '_stemming_analyzer'
                     },
                     'body' : {
                          'type': 'text',
                         'analyzer': lang + '_non_stemming_analyzer',
-                        'copy_to': 'text_content'
+                        'copy_to': ['text_content', 'stemmed_text_content', 'stemmed_body']
                     },
                     'stemmed_body': {
                         'type': 'text',
-                        'analyzer': lang + '_stemming_analyzer',
-                        'copy_to': 'stemmed_text_content'
+                        'analyzer': lang + '_stemming_analyzer'
                     },
                     'body_paragraphs': {
                         'type': 'nested',
@@ -205,8 +202,46 @@ def create_documents_mapping(es: Elasticsearch, index_name, doc_type, lang):
                             }
                         }
                     },
+                    'body_sentences': {
+                        'type': 'nested',
+                        'properties': {
+                            'sentence': {
+                                'type': 'text',
+                                'analyzer': lang + '_non_stemming_analyzer'
+                            }
+                        }
+                    },
+                    'stemmed_body_sentences': {
+                        'type': 'nested',
+                        'properties': {
+                            'sentence': {
+                                'type': 'text',
+                                'analyzer': lang + '_stemming_analyzer'
+                            }
+                        }
+                    },
                     'versionCreated': {'type': 'date'},
                     'topics': {
+                        'type': 'nested',
+                        'properties': {
+                            'id': {'type': 'keyword'},
+                            'name': {'type': 'keyword'},
+                            'parent': {'type': 'keyword'},
+                            'association': {'type': 'keyword'},
+                            'exclude': {'type': 'keyword'}
+                        }
+                    },
+                    'direct_topics': {
+                        'type': 'nested',
+                        'properties': {
+                            'id': {'type': 'keyword'},
+                            'name': {'type': 'keyword'},
+                            'parent': {'type': 'keyword'},
+                            'association': {'type': 'keyword'},
+                            'exclude': {'type': 'keyword'}
+                        }
+                    },
+                    'ancestor_topics': {
                         'type': 'nested',
                         'properties': {
                             'id': {'type': 'keyword'},
@@ -251,6 +286,10 @@ def load_documents(documents_dir):
 def pre_process_documents(documents):
     for document in documents:
         document['exclude'] = 'false'
+        for mt in document['topics']:
+            mt['exclude'] = 'false'
+        document['stemmed_body_paragraphs'] = document['body_paragraphs']
+        document['stemmed_body_sentences'] = document['body_sentences']
         document['direct_topics'] = [mt for mt in document['topics'] if mt['association'] == 'why:direct']
         document['ancestor_topics'] = [mt for mt in document['topics'] if mt['association'] == 'why:ancestor']
     return documents
