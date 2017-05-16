@@ -1,8 +1,7 @@
 import math
-import json
 from datetime import datetime
 
-from flask import Flask, request
+from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from flask_cors import CORS
 from sections import Node
@@ -30,8 +29,8 @@ class Document(Resource):
         args = parser.parse_args()
         corpus = args['corpus']
 
-        article = es.get(index=corpus, id=document_id, doc_type='documents')
-        return {'article': article['_source']}
+        document = es.get(index=corpus, id=document_id, doc_type='documents')
+        return {'document': document['_source']}
 
     def put(self, document_id):
         parser = reqparse.RequestParser()
@@ -63,15 +62,26 @@ class Document(Resource):
                 topic['exclude'] = exclude
 
         # update topics subset
-        sbt = 'direct_topics' if (association is None or association == 'why:direct') else 'ancestor_topics'
-        topics_subset = document['_source'][sbt]
-        for topic in topics_subset:
-            if topic['id'] == topic_id:
-                topic['exclude'] = exclude
+        if association == 'undefined':
+            topics = document['_source']['topics']
+            for topic in topics:
+                if topic['id'] == topic_id:
+                    topics.remove(topic)
+                    break
 
-        body = {'doc' : {'topics' : topics, sbt : topics_subset}}
+            body = {'doc': {'topics': topics}}
+            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
 
-        es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+        else:
+            sbt = 'direct_topics' if (association is None or association == 'why:direct') else 'ancestor_topics'
+            topics_subset = document['_source'][sbt]
+            for topic in topics_subset:
+                if topic['id'] == topic_id:
+                    topic['exclude'] = exclude
+
+            body = {'doc' : {'topics' : topics, sbt : topics_subset}}
+            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+
         return {'msg': 'document ' + document_id + ' is flagged as exclude:' + exclude + ' for ' + topic_id}
 
 
@@ -126,11 +136,10 @@ class Documents(Resource):
         n_per_page = args['nPerPage'] if args['nPerPage'] is not None else 10
         search = search.sort('-versionCreated')
         search = search[(page-1)*n_per_page : page * n_per_page]
-        search = search.source(excludes=['direct_topics', 'ancestor_topics'])
+        search = search.source(includes=['slugline', 'headline', 'title', 'versionCreated', 'body', 'id', 'topics', 'body_paragraphs'])
 
         if args['q'] is not None and args['q'] is not '':
-            search = search.query('bool', must=Q('query_string', query=args['q'], default_field='stemmed_text_content',
-            analyzer=lang, analyze_wildcard='true', default_operator='or'))
+            search = search.query('bool', must=Q('query_string', query=args['q'], default_field='stemmed_text_content', analyzer=lang, analyze_wildcard='true', default_operator='or'))
             search = search.highlight_options(number_of_fragments=0, pre_tags=['<span class="highlight">'], post_tags=['</span>'])
             search = search.highlight('headline', fragment_size=0, require_field_match=False,)
             search = search.highlight('body', fragment_size=0, require_field_match=False,)
@@ -247,22 +256,38 @@ class Topics(Resource):
             response.append(topic)
         return response
 
-    def put(self):
+
+class Topic(Resource):
+    def get(self, topic_id):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
-        parser.add_argument('article_id', type=str, required=True)
+        args = parser.parse_args()
+        corpus = args['corpus']
+
+        result = es.get(index=corpus, id=topic_id, doc_type='topics')
+        topic = result['_source']
+
+        return topic
+
+    def put(self, topic_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('corpus', type=str, required=True)
+        parser.add_argument('document_id', type=str, required=True)
 
         args = parser.parse_args()
         corpus = args['corpus']
         document_id = args['document_id']
 
-        new_topic = json.loads(request.data)
+        result = es.get(index=corpus, id=topic_id, doc_type='topics')
+        if result is None:
+            return {'msg': 'topic ' + topic_id + ' does not exist. Failed to add user defined topic.'}
+        new_topic = result['_source']
 
-        article = es.get(index=corpus, id=document_id, doc_type='documents')
-        if article is None:
-            return {'msg': 'article ' + document_id + ' does not exist. Failed to add user defined topic.'}
+        documents = es.get(index=corpus, id=document_id, doc_type='documents')
+        if documents is None:
+            return {'msg': 'document ' + document_id + ' does not exist. Failed to add user defined topic.'}
 
-        topics = article['_source']['topics']
+        topics = documents['_source']['topics']
         # update topics set
         exists = False
         for topic in topics:
@@ -274,8 +299,9 @@ class Topics(Resource):
             topics.append(new_topic)
             body = {'doc': {'topics': topics}}
             es.update(index=corpus, doc_type='documents', id=document_id, body=body)
-
-        return {'msg': 'article ' + document_id + ' has been annotated with ' + new_topic['id']}
+            return {'msg': 'document ' + document_id + ' has been annotated with ' + new_topic['id']}
+        else:
+            return {'msg': 'document ' + document_id + ' is already annotated with ' + new_topic['id']}
 
 
 class Statistics(Resource):
@@ -515,6 +541,11 @@ def page_not_found(error):
     return 'page not found'
 
 
+@app.errorhandler(400)
+def raise_error(error):
+    return error
+
+
 @app.errorhandler(500)
 def raise_error(error):
     return error
@@ -525,6 +556,7 @@ if __name__ == '__main__':
     api.add_resource(Document, '/documents/<document_id>')
     api.add_resource(DocumentFile, '/documents/xml')
     api.add_resource(Topics, '/topics')
+    api.add_resource(Topic, '/topics/<topic_id>')
     api.add_resource(Statistics, '/stats')
     api.add_resource(Top, '/top')
     api.add_resource(Section, '/section/<section_id>', '/section')
