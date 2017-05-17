@@ -750,8 +750,11 @@ $('.radio input').click(function () {
 $("#tiles").on("click", ".topics_autocomplete,[id^=eac-container-topics_autocomplete_] li", function (e) {
     e.stopPropagation();
 });
-$("#tiles").on("click", ".topic_include", function (e) {
+
+$("#tiles").on("click", ".topic_include", function ( e ) {
     e.stopPropagation();
+    var corpus = $('.activelan').parent().attr('id');
+    var document_id = $(this).parent('li').attr('data-id');
     var topic = $('#topics_autocomplete_' + $(this).parents('li').index()).val();
     if (topic != null) {
         var topic_id = topic.match(/(?:\()[^\(\)]*?(?:\))/g);
@@ -762,8 +765,19 @@ $("#tiles").on("click", ".topic_include", function (e) {
         else {
             $(this).parents('li').find('.media_topics').eq(0).after('<div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic"><li><a href="http://cv.iptc.org/newscodes/mediatopic/' + topic_id.slice(1, -1) + '?lang=de" target="_blank">' + topic + '</a><img data-parent_id="' + $(this).parents('li').attr('data-id') + '" data-association="why:userdefined" data-topic_id="medtop:' + topic_id + '" class="delete_tag" src="imgs/delete.png"></li></ul></div>');
         }
+        tid = "medtop:" + topic_id.slice(1, -1);
+        $.ajax({
+            type: "PUT",
+            dataType: "json",
+            url: "http://" + window.location.hostname + ":5000/api/topics/" + tid + "?corpus=" + corpus + "&document_id=" + document_id,
+            //url: "http://" + window.location.hostname + ":5000/api/topics/medtop:" + topic_id.slice(1, -1) + "?corpus=" + corpus + "&document_id=" + document_id,
+            success: function () {
+            },
+            async: true
+        });
     }
 });
+
 $("#tiles").on("click", ".media_topic a", function (e) {
     e.stopPropagation();
 });
