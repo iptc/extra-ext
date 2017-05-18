@@ -10,7 +10,11 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 from elasticsearch_dsl.aggs import A
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
+client = MongoClient('mongodb', 27027)
+mongodb = client.extra
 es = Elasticsearch(hosts = [{'host': 'elasticsearch', 'port': 9200}])
 
 languages = {'apa': 'german', 'reuters': 'english'}
@@ -27,7 +31,10 @@ class Document(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
         args = parser.parse_args()
-        corpus = args['corpus']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         document = es.get(index=corpus, id=document_id, doc_type='documents')
         return {'document': document['_source']}
@@ -40,10 +47,14 @@ class Document(Resource):
         parser.add_argument('association', type=str, required=False)
 
         args = parser.parse_args()
-        corpus = args['corpus']
+
         exclude = args['exclude']
         topic_id = args['topic']
         association = args['association']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         if topic_id is None or topic_id == '':
             return {'exclude': 'false', 'msg': ' topic is unset for ' + document_id}
@@ -92,8 +103,12 @@ class DocumentFile(Resource):
         parser.add_argument('documentId', type=str, required=True)
 
         args = parser.parse_args()
-        corpus = args['corpus']
+
         document_id = args['documentId']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         article = es.get(index=corpus, id=document_id, doc_type='documents')
         if article is None:
@@ -124,7 +139,10 @@ class Documents(Resource):
 
         args = parser.parse_args()
         search = Search(using=es)
-        corpus = args['corpus']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         lang = languages[corpus]
         delimiter = delimiters[corpus]
@@ -222,7 +240,9 @@ class Topics(Resource):
         parser.add_argument('association', type=str, required=False)
 
         args = parser.parse_args()
-        corpus = args['corpus']
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         field = 'direct_topics'
         if args['association'] is not None and args['association'] == 'why:ancestor':
@@ -238,7 +258,7 @@ class Topics(Resource):
                 'path': field
             },
             'aggs': {
-                field+'.id': A('terms', field=field+'.id', size=1000, min_doc_count=1)
+                field+'.id': A('terms', field=field+'.id', size=1200, min_doc_count=1)
             }
         }
         search.aggs.bucket(field, aggregations)
@@ -261,8 +281,11 @@ class Topic(Resource):
     def get(self, topic_id):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
+
         args = parser.parse_args()
-        corpus = args['corpus']
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         result = es.get(index=corpus, id=topic_id, doc_type='topics')
         topic = result['_source']
@@ -275,7 +298,11 @@ class Topic(Resource):
         parser.add_argument('document_id', type=str, required=True)
 
         args = parser.parse_args()
-        corpus = args['corpus']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
+
         document_id = args['document_id']
 
         result = es.get(index=corpus, id=topic_id, doc_type='topics')
@@ -312,7 +339,9 @@ class Statistics(Resource):
 
         args = parser.parse_args()
         field = args['field']
-        corpus = args['corpus']
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         search = Search(using=es)
         search = search.index(corpus)
@@ -334,7 +363,10 @@ class Top(Resource):
 
         args = parser.parse_args()
         field = args['field']
-        corpus = args['corpus']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         size = args['size'] if args['size'] is not None else 500
 
@@ -385,7 +417,9 @@ class TopTerms(Resource):
 
         args = parser.parse_args()
         query = args['q']
-        corpus = args['corpus']
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         size = args['size'] if args['size'] is not None else 20
 
@@ -413,7 +447,10 @@ class Section(Resource):
         parser.add_argument('corpus', type=str, required=True)
         args = parser.parse_args()
 
-        corpus = args['corpus']
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
+
         if section_id == 'root' or section_id is None:
             search = Search(using=es)
             search = search.index(corpus)
@@ -438,7 +475,10 @@ class SectionChildren(Resource):
         parser.add_argument('nPerPage', type=int, required=False)
 
         args = parser.parse_args()
-        corpus = args['corpus']
+
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
 
         current = None
         search = Search(using=es)
@@ -490,7 +530,10 @@ class Sections(Resource):
 
         args = parser.parse_args()
 
-        corpus = args['corpus']
+        corpus_id = args['corpus']
+        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
+        corpus = corpus_obj['name']
+
         page = args['page'] if args['page'] is not None else 1
         n_per_page = args['nPerPage'] if args['nPerPage'] is not None else 20
 
