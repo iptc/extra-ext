@@ -10,7 +10,7 @@ $('#search_but').click(function () {
     var data = JSON.stringify(viewData);
     $.ajax({
         type: 'POST',
-        url: 'http://' + window.location.hostname + ':8888/extra/api/validations',
+        url: 'http://' + window.location.hostname + ':8888/extra/api/validations?corpus=' + $('#corpus_select').val(),
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -40,14 +40,15 @@ $('#search_but').click(function () {
                         $('#recall').text(json.annotations.recall);
                         $('#precision').text(json.annotations.precision);
                         $('#accuracy').text(json.annotations.accuracy);
+                        $('#stats_articles,#back_articles').show();
                         if (json.entries.length > 0) {
                             $('#wmd-input').attr('contenteditable', 'false');
                             $('#syntax_but,#search_but,#save_but,#delete_but,#corpus_select').attr('disabled', 'disabled');
                             for (var i = 0; i < json.entries.length; i++) {
-                                $('#result_articles').append('<div class="article"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article">' + json.entries[i].headline + '</p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
+                                $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article">' + json.entries[i].headline + '<img class="exclude_topic"src="imgs/delete.png"> </p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
                             }
                             var $articles_pagination = $('#articles_pagination');
-                            $('#stats_articles,#result_articles,#well_articles,#back_rules').show();
+                            $('#result_articles,#well_articles').show();
                             if ($articles_pagination.data("twbs-pagination")) {
                                 $articles_pagination.twbsPagination('destroy');
                             }
@@ -74,10 +75,7 @@ $('#search_but').click(function () {
                 });
             }
             else {
-                $('#articles_results').hide();
-                $('#rules').show();
-                $('#error_modal').slideDown();
-                $('#error_msg').text(json.message)
+                $('#syntax_but').click();
             }
         },
         error: function (e) {
@@ -86,7 +84,7 @@ $('#search_but').click(function () {
 
 });
 $("#result_articles").on("click", ".article", function () {
-    $('#stats_articles,#result_articles,#well_articles,#back_rules').hide();
+    $('#stats_articles,#result_articles,#well_articles,#back_rules,#zero_articles').hide();
     $('#article_big').html($(this).find('.hidden_article').html());
     $('#back_articles,#article_big').show();
 });
@@ -108,18 +106,19 @@ $("#result_rules").on("click", ".rule:not(.highlight_rule)", function () {
                 $('#annotations').hide();
                 $('#rule_buttons').show();
                 $('#annotations_input').val("");
+                $('#rule_name').html(json.name);
+                $('#rule_topic').html(json.topicName);
+                $('#rule_topic').attr('data-id', json.topicId);
             },
             async: true
         });
         $('#save_but').attr('data-id', $(this).attr('data-id'));
         $('#wmd-input').attr('contenteditable', 'true');
         if ($('#corpus_select').val()) {
-            $('#search_but').removeAttr('disabled');
+            $('#search_but,#syntax_but').removeAttr('disabled');
         }
-        $('#syntax_but,#save_but,#delete_but').removeAttr('disabled');
+        $('#save_but,#delete_but').removeAttr('disabled');
         $('#editor,#rule_close').show();
-        $('#rule_name').html($(this).find('.title_rule').text());
-        $('#rule_topic').html($(this).find('.media_topic a').text());
         $('#success_modal,#error_modal').slideUp();
         $('.rule').removeClass('highlight_rule');
         $(this).addClass('highlight_rule');
@@ -132,9 +131,9 @@ $('#back_articles').click(function () {
 $('#back_rules').click(function () {
     $('#wmd-input').attr('contenteditable', 'true');
     if ($('#corpus_select').val()) {
-        $('#search_but').removeAttr('disabled');
+        $('#search_but,#syntax_but').removeAttr('disabled');
     }
-    $('#syntax_but,#save_but,#delete_but,#corpus_select').removeAttr('disabled');
+    $('#save_but,#delete_but,#corpus_select').removeAttr('disabled');
     $('#articles_results').hide();
     $('#rules').show();
 });
@@ -147,7 +146,7 @@ $('#syntax_but').click(function () {
     var data = JSON.stringify(viewData);
     $.ajax({
         type: 'POST',
-        url: 'http://' + window.location.hostname + ':8888/extra/api/validations',
+        url: 'http://' + window.location.hostname + ':8888/extra/api/validations?corpus=' + $('#corpus_select').val(),
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -359,18 +358,18 @@ $('#create_rule_but').click(function () {
         else {
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but').removeAttr('disabled');
+                $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#syntax_but,#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
-            $('#rule_topic').html($('#create_rule').val());
             $('#wmd-input').html('');
             $('#success_modal,#error_modal').slideUp();
             var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
             var mediatopicname = $('#topics_autocomplete').val().replace(mediatopic, '').slice(0, -1);
             mediatopic = mediatopic[0].slice(1, -1);
             $('#rule_topic').html(mediatopicname);
+            $('#rule_topic').attr('data-id', mediatopic);
             var viewData = {
                 "name": $('#create_rule').val(),
                 "query": "",
@@ -429,6 +428,18 @@ $(function () {
         $("#topics_autocomplete").easyAutocomplete(options);
     }
     else {
+        $.ajax({
+            type: "GET",
+            url: "http://" + window.location.hostname + ":8888/extra/api/corpora?taxonomy=" + taxonomy_id,
+            dataType: "json",
+            success: function (json) {
+                for (var i = 0; i < json.entries.length; i++) {
+                    $('#corpus_select').append('<option value="' + json.entries[i].id + '">' + json.entries[i].name + '</option>');
+                }
+                $('#corpus_select').removeAttr('disabled');
+            },
+            async: true
+        });
         $.ajax({
             type: "GET",
             url: "http://" + window.location.hostname + ":8888/extra/api/taxonomies",
@@ -594,11 +605,24 @@ $(function () {
     }
 });
 $('#corpus_select').on('change', function () {
-    if (!($("#syntax_but").is(":disabled"))) {
-        $('#search_but').removeAttr('disabled');
+    if ($("#wmd-input").attr("contentEditable") === "true") {
+        $('#search_but,#syntax_but').removeAttr('disabled');
     }
 });
 $('#lang_select').on('change', function () {
+    $.ajax({
+        type: "GET",
+        url: "http://" + window.location.hostname + ":8888/extra/api/corpora?taxonomy=" + this.value,
+        dataType: "json",
+        success: function (json) {
+            $('#corpus_select').find('option').not(':first').remove();
+            for (var i = 0; i < json.entries.length; i++) {
+                $('#corpus_select').append('<option value="' + json.entries[i].id + '">' + json.entries[i].name + '</option>');
+            }
+            $('#corpus_select').removeAttr('disabled');
+        },
+        async: true
+    });
     $('#topics_autocomplete,#search_rule_but').removeAttr('disabled');
     $('#result_rules').empty();
     $('#well_rules,#zero_rules').hide();
@@ -728,6 +752,7 @@ $('#rule_close').click(function () {
     else {
         $('#rule_name').text('-');
         $('#rule_topic').html('-');
+        $('#rule_topic').attr('data-id', '-');
         $('#rule_close,#es_dsl').hide();
         $('#back_rules,#back_articles').click();
         $('.highlight_rule').removeClass('highlight_rule');
@@ -766,7 +791,7 @@ function parse_articles(page) {
             $('#precision').text(json.annotations.precision);
             $('#accuracy').text(json.annotations.accuracy);
             for (var i = 0; i < json.entries.length; i++) {
-                $('#result_articles').append('<div class="article"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article">' + json.entries[i].headline + '</p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
+                $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article">' + json.entries[i].headline + '<img class="exclude_topic"src="imgs/delete.png"></p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
             }
         },
         error: function () {
@@ -830,6 +855,19 @@ $("#result_rules").on("click", ".submit_rule", function (e) {
     e.stopPropagation();
     $(this).siblings('.status').html('<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>')
 });
+$("#result_articles").on("click", ".exclude_topic", function (e) {
+    e.stopPropagation();
+    var $this = $(this);
+    $.ajax({
+        type: "PUT",
+        url: "http://" + window.location.hostname + ":5000/api/documents/" + $(this).parents('.article').attr('data-id') + "?corpus=" + $('#corpus_select').val() + "&exclude=true&association=why:direct&topic=" + $('#rule_topic').attr('data-id'),
+        dataType: "json",
+        success: function () {
+            $this.parents('.article').remove();
+        },
+        async: true
+    });
+});
 function ISODateString(d) {
     return pad(d.getUTCMonth() + 1) + '/' + pad(d.getUTCDate()) + '/' + d.getUTCFullYear();
 }
@@ -883,18 +921,19 @@ $('#save_changes').click(function () {
                     $('#annotations').hide();
                     $('#rule_buttons').show();
                     $('#annotations_input').val("");
+                    $('#rule_name').html(json.name);
+                    $('#rule_topic').html(json.topicName);
+                    $('#rule_topic').attr('data-id', json.topicId);
                 },
                 async: true
             });
             $('#save_but').attr('data-id', modal_action_1.attr('data-id'));
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but').removeAttr('disabled');
+                $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#syntax_but,#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
-            $('#rule_name').html(modal_action_1.find('.title_rule').text());
-            $('#rule_topic').html(modal_action_1.find('.media_topic a').text());
             $('#success_modal,#error_modal').slideUp();
             $('.rule').removeClass('highlight_rule');
             modal_action_1.addClass('highlight_rule');
@@ -902,9 +941,9 @@ $('#save_changes').click(function () {
         case 2:
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but').removeAttr('disabled');
+                $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#syntax_but,#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -913,6 +952,7 @@ $('#save_changes').click(function () {
             var mediatopicname = $('#topics_autocomplete').val().replace(mediatopic, '').slice(0, -1);
             mediatopic = mediatopic[0].slice(1, -1);
             $('#rule_topic').html(mediatopicname);
+            $('#rule_topic').attr('data-id', mediatopic);
             var viewData = {
                 "name": $('#create_rule').val(),
                 "query": "",
@@ -945,6 +985,7 @@ $('#save_changes').click(function () {
         case 3:
             $('#rule_name').text('-');
             $('#rule_topic').html('-');
+            $('#rule_topic').attr('data-id', '-');
             $('#rule_close,#es_dsl').hide();
             $('#back_rules,#back_articles').click();
             $('.highlight_rule').removeClass('highlight_rule');
@@ -972,18 +1013,19 @@ $('#dismiss_changes').click(function () {
                     $('#annotations').hide();
                     $('#rule_buttons').show();
                     $('#annotations_input').val("");
+                    $('#rule_name').html(json.name);
+                    $('#rule_topic').html(json.topicName);
+                    $('#rule_topic').attr('data-id', json.topicId);
                 },
                 async: true
             });
             $('#save_but').attr('data-id', modal_action_1.attr('data-id'));
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but').removeAttr('disabled');
+                $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#syntax_but,#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
-            $('#rule_name').html(modal_action_1.find('.title_rule').text());
-            $('#rule_topic').html(modal_action_1.find('.media_topic a').text());
             $('#success_modal,#error_modal').slideUp();
             $('.rule').removeClass('highlight_rule');
             modal_action_1.addClass('highlight_rule');
@@ -992,9 +1034,9 @@ $('#dismiss_changes').click(function () {
 
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but').removeAttr('disabled');
+                $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#syntax_but,#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -1003,6 +1045,7 @@ $('#dismiss_changes').click(function () {
             var mediatopicname = $('#topics_autocomplete').val().replace(mediatopic, '').slice(0, -1);
             mediatopic = mediatopic[0].slice(1, -1);
             $('#rule_topic').html(mediatopicname);
+            $('#rule_topic').attr('data-id', mediatopic);
             var viewData = {
                 "name": $('#create_rule').val(),
                 "query": "",
@@ -1035,6 +1078,7 @@ $('#dismiss_changes').click(function () {
         case 3:
             $('#rule_name').text('-');
             $('#rule_topic').html('-');
+            $('#rule_topic').attr('data-id', '-');
             $('#rule_close,#es_dsl').hide();
             $('#back_rules,#back_articles').click();
             $('.highlight_rule').removeClass('highlight_rule');
@@ -1080,6 +1124,7 @@ $("#delete_edit").click(function () {
                 if ($('.deleted_selection_rule').hasClass('highlight_rule')) {
                     $('#rule_name').text('-');
                     $('#rule_topic').html('-');
+                    $('#rule_topic').attr('data-id', '-');
                     $('#wmd-input').attr('contenteditable', 'false').html('');
                     $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
                     $('#rule_close').hide();
@@ -1101,6 +1146,7 @@ $("#delete_edit").click(function () {
                 $('#json_close').click();
                 $('#rule_name').text('-');
                 $('#rule_topic').html('-');
+                $('#rule_topic').attr('data-id', '-');
                 $('#wmd-input').attr('contenteditable', 'false').html('');
                 $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
                 $('#rule_close').hide();
@@ -1151,7 +1197,7 @@ $('#stats_articles td').click(function () {
                 $('#accuracy').text(json.annotations.accuracy);
                 if (json.entries.length > 0) {
                     for (var i = 0; i < json.entries.length; i++) {
-                        $('#result_articles').append('<div class="article"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article">' + json.entries[i].headline + '</p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
+                        $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article">' + json.entries[i].headline + '<img class="exclude_topic"src="imgs/delete.png"></p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
                     }
                     var $articles_pagination = $('#articles_pagination');
                     $('#stats_articles,#result_articles,#well_articles,#back_rules').show();
@@ -1193,9 +1239,3 @@ $('#hamburger-menu a').click(function (e) {
         }
     }
 });
-/*
- window.onbeforeunload = function(){
- if (unsaved_rule) {
- return 'Are you sure you want to leave?';
- }
- };*/

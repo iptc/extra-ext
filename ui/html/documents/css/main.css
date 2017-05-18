@@ -239,7 +239,16 @@ html, body {
     color: white !important;
 }
 
-.inlist:not(#topics):not(#date):not(#sections):before {
+.inlist_1:before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 1;
+    left: 32px;
+    border-left: 1px solid #e2e2e2;
+    height: 34px;
+}
+.inlist_2:before {
     content: "";
     display: block;
     position: absolute;
@@ -247,6 +256,33 @@ html, body {
     left: 32px;
     border-left: 1px solid #e2e2e2;
     height: 68px;
+}
+.inlist_3:before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 1;
+    left: 32px;
+    border-left: 1px solid #e2e2e2;
+    height: 102px;
+}
+.inlist_4:before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 1;
+    left: 32px;
+    border-left: 1px solid #e2e2e2;
+    height: 136px;
+}
+.inlist_5:before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 1;
+    left: 32px;
+    border-left: 1px solid #e2e2e2;
+    height: 170px;
 }
 
 #settings {
@@ -1116,4 +1152,12 @@ pre {
     cursor: pointer;
     color: #FFF;
     background: rgba(255, 255, 255, 0.15);
+}
+.disabled{
+    opacity: 0.3;
+    cursor: default;
+    -webkit-transition: all 0.7s ease 0s;
+    -moz-transition: all 0.7s ease 0s;
+    -o-transition: all 0.7s ease 0s;
+    transition: all 0.7s ease 0s;
 }

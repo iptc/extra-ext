@@ -1207,3 +1207,8 @@ div[contenteditable=false] {
     margin-top: -14px;
     font-family: sans-serif;
 }
+.exclude_topic{
+    width: 12px;
+    margin-left: 10px;
+    cursor: pointer;
+}

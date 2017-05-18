@@ -1,7 +1,19 @@
 var options;
 $(function () {
+    $.ajax({
+        type: "GET",
+        url: "http://" + window.location.hostname + ":8888/extra/api/corpora",
+        dataType: "json",
+        success: function (json) {
+            for (var i = 0; i < json.entries.length; i++) {
+                $('#languages').append('<li class="sub1" id="' + json.entries[i].id + '"><a href="#">' + json.entries[i].name + '</a></li>');
+            }
+            $('#languages').addClass('inlist_' + i);
+        },
+        async: true
+    });
     options = {
-        url: "http://" + window.location.hostname + ":5000/api/topics?corpus=apa&association=" + document.querySelector('input[name="radio"]:checked').value,
+        url: "",
         getValue: "search",
         minCharNumber: 2,
         list: {
@@ -28,30 +40,7 @@ $(function () {
             }
         }
     };
-
     $("#topics_autocomplete").easyAutocomplete(options);
-    $.ajax({
-        type: "GET",
-        url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=versionCreated",
-        dataType: "json",
-        success: function (json) {
-            $("#date_range").daterangepicker({
-                initialText: 'Select period...',
-                datepickerOptions: {
-                    numberOfMonths: 2,
-                    minDate: moment(json.min).format("MM/DD/YYYY"),
-                    maxDate: moment(json.max).format("MM/DD/YYYY")
-                },
-                change: function (event, data) {
-                    var json_date = JSON.parse($("#date_range").val());
-                    if (json_date.start === json_date.end) {
-                        $("#date_range").daterangepicker("clearRange");
-                    }
-                }
-            });
-        },
-        async: true
-    });
     var width = 212,
         height = 44 * 4,
         speed = 300,
@@ -98,190 +87,170 @@ $(function () {
 $("#settings").on("click", ".sub1", function (e) {
     e.preventDefault();
     if (!($(this).find('a').hasClass('activelan'))) {
+        $('#search_start').removeClass('disabled');
+        $('#topics_autocomplete').attr('disabled', false);
         $('.well,#empty,#info').hide();
         $('#tiles').empty();
         $('#slugline_param').text('');
-        $("#date_range").daterangepicker("clearRange");
+        if ($('.ui-button-icon-space').length > 0) {
+            $("#date_range").daterangepicker("clearRange");
+            $("#date_range").daterangepicker("destroy");
+        }
         $('.sub1 a').removeClass('activelan');
         $(this).find('a').addClass('activelan');
-        $("#date_range").daterangepicker("destroy");
-        if ($(this).attr('id') === "apa") {
-            options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=apa&association=" + document.querySelector('input[name="radio"]:checked').value;
-            $.ajax({
-                type: "GET",
-                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=apa&field=versionCreated",
-                dataType: "json",
-                success: function (json) {
-                    $("#date_range").daterangepicker({
-                        initialText: 'Select period...',
-                        datepickerOptions: {
-                            numberOfMonths: 2,
-                            minDate: moment(json.min).format("MM/DD/YYYY"),
-                            maxDate: moment(json.max).format("MM/DD/YYYY")
-                        },
-                        change: function (event, data) {
-                            var json_date = JSON.parse($("#date_range").val());
-                            if (json_date.start === json_date.end) {
-                                $("#date_range").daterangepicker("clearRange");
-                            }
+        var corpus = $('.activelan').parent().attr('id');
+        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=" + document.querySelector('input[name="radio"]:checked').value;
+        $.ajax({
+            type: "GET",
+            url: "http://" + window.location.hostname + ":5000/api/stats?corpus=" + corpus + "&field=versionCreated",
+            dataType: "json",
+            success: function (json) {
+                $("#date_range").daterangepicker({
+                    initialText: 'Select period...',
+                    datepickerOptions: {
+                        numberOfMonths: 2,
+                        minDate: moment(json.min).format("MM/DD/YYYY"),
+                        maxDate: moment(json.max).format("MM/DD/YYYY")
+                    },
+                    change: function (event, data) {
+                        var json_date = JSON.parse($("#date_range").val());
+                        if (json_date.start === json_date.end) {
+                            $("#date_range").daterangepicker("clearRange");
                         }
-                    });
-                },
-                async: true
-            });
-        }
-        else if ($(this).attr('id') === "reuters") {
-            options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=reuters&association=" + document.querySelector('input[name="radio"]:checked').value;
-            $.ajax({
-                type: "GET",
-                url: "http://" + window.location.hostname + ":5000/api/stats?corpus=reuters&field=versionCreated",
-                dataType: "json",
-                success: function (json) {
-                    $("#date_range").daterangepicker({
-                        initialText: 'Select period...',
-                        datepickerOptions: {
-                            numberOfMonths: 2,
-                            minDate: moment(json.min).format("MM/DD/YYYY"),
-                            maxDate: moment(json.max).format("MM/DD/YYYY")
-                        },
-                        change: function (event, data) {
-                            var json_date = JSON.parse($("#date_range").val());
-                            if (json_date.start === json_date.end) {
-                                $("#date_range").daterangepicker("clearRange");
-                            }
-                        }
-                    });
-                },
-                async: true
-            });
-        }
+                    }
+                });
+            },
+            async: true
+        });
         $("#topics_autocomplete").val("").easyAutocomplete(options);
     }
 });
 $('#search_start').click(function () {
-    abort();
-    $('#loading').show();
-    $('.well,#empty,#info').hide();
-    $('#tiles').empty();
-    var section = $('#slug_value').text();
-    var q = $('#query').val();
-    var corpus = $('.activelan').parent().attr('id');
-    var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-    if (topic != null) {
-        topic = topic[topic.length - 1].slice(1, -1);
-        topic = "medtop:" + topic;
-    }
-    else {
-        topic = "";
-    }
-    var association = document.querySelector('input[name="radio"]:checked').value;
-    var json_date = $("#date_range").val();
-    var start, end;
-    if (json_date === "") {
-        start = 0, end = 0;
-    }
-    else {
-        json_date = JSON.parse($("#date_range").val());
-        start = (new Date(json_date.start).getTime()) / 1000;
-        end = (new Date(json_date.end).getTime()) / 1000;
-    }
-    $.ajax({
-        type: "GET",
-        url: "http://" + window.location.hostname + ":5000/api/documents?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&topic=" + topic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
-        dataType: "json",
-        success: function (json) {
-            var tags_anc = '', tags_dir = '', tags_user = '';
-            var date = '', slugline = '', style_exclude = '';
-            for (var i = 0; i < json.documents.length; i++) {
-                tags_anc = '', tags_dir = '', slugline = '', tags_user = '';
-                for (var k = 0; k < json.documents[i].topics.length; k++) {
-                    if (json.documents[i].topics[k].association === "why:ancestor") {
-                        if (json.documents[i].topics[k].exclude === "true") {
-                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+    if (!($(this).hasClass('disabled'))) {
+        abort();
+        $('#loading').show();
+        $('.well,#empty,#info').hide();
+        $('#tiles').empty();
+        var section = $('#slug_value').text();
+        var q = $('#query').val();
+        var corpus = $('.activelan').parent().attr('id');
+        var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+        if (topic != null) {
+            topic = topic[topic.length - 1].slice(1, -1);
+            topic = "medtop:" + topic;
+        }
+        else {
+            topic = "";
+        }
+        var association = document.querySelector('input[name="radio"]:checked').value;
+        var json_date = $("#date_range").val();
+        var start, end;
+        if (json_date === "") {
+            start = 0, end = 0;
+        }
+        else {
+            json_date = JSON.parse($("#date_range").val());
+            start = (new Date(json_date.start).getTime()) / 1000;
+            end = (new Date(json_date.end).getTime()) / 1000;
+        }
+        $.ajax({
+            type: "GET",
+            url: "http://" + window.location.hostname + ":5000/api/documents?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&topic=" + topic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
+            dataType: "json",
+            success: function (json) {
+                var tags_anc = '', tags_dir = '', tags_user = '';
+                var date = '', slugline = '', style_exclude = '';
+                for (var i = 0; i < json.documents.length; i++) {
+                    tags_anc = '', tags_dir = '', slugline = '', tags_user = '';
+                    for (var k = 0; k < json.documents[i].topics.length; k++) {
+                        if (json.documents[i].topics[k].association === "why:ancestor") {
+                            if (json.documents[i].topics[k].exclude === "true") {
+                                tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                            }
+                            else {
+                                tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            }
+                        }
+                        else if (json.documents[i].topics[k].association === "why:direct") {
+                            if (json.documents[i].topics[k].exclude === "true") {
+                                tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                            }
+                            else {
+                                tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            }
                         }
                         else {
-                            tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            if (json.documents[i].topics[k].exclude === "true") {
+                                tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                            }
+                            else {
+                                tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            }
                         }
                     }
-                    else if (json.documents[i].topics[k].association === "why:direct") {
-                        if (json.documents[i].topics[k].exclude === "true") {
-                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
-                        }
-                        else {
-                            tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
-                        }
+                    date = json.documents[i].versionCreated.split('T')[0] + ' ' + json.documents[i].versionCreated.split('T')[1].substr(0, 5);
+
+                    for (var l = 0; l < json.documents[i].slugline.split(json.delimiter).length; l++) {
+                        slugline = slugline + '<li><a href="javascript:void(0)">' + json.documents[i].slugline.split(json.delimiter)[l] + '</a></li>'
+                    }
+                    if (json.documents[i].exclude === "true") {
+                        style_exclude = "border:2px solid #d0402f";
                     }
                     else {
-                        if (json.documents[i].topics[k].exclude === "true") {
-                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
-                        }
-                        else {
-                            tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
-                        }
+                        style_exclude = "";
+                    }
+                    if (tags_user !== "") {
+                        $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    }
+                    else {
+                        $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                     }
                 }
-                date = json.documents[i].versionCreated.split('T')[0] + ' ' + json.documents[i].versionCreated.split('T')[1].substr(0, 5);
+                $('#loading').hide();
+                $('.well,#info').show();
+                var info_text = json.found + ' Documents';
 
-                for (var l = 0; l < json.documents[i].slugline.split(json.delimiter).length; l++) {
-                    slugline = slugline + '<li><a href="javascript:void(0)">' + json.documents[i].slugline.split(json.delimiter)[l] + '</a></li>'
+                if ($('#query').val() !== "") {
+                    info_text = info_text + ' for Query "' + $('#query').val() + '"';
                 }
-                if (json.documents[i].exclude === "true") {
-                    style_exclude = "border:2px solid #d0402f";
-                }
-                else {
-                    style_exclude = "";
-                }
-                if (tags_user !== "") {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
-                }
-                else {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title">' + json.documents[i].headline + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
-                }
-            }
-            $('#loading').hide();
-            $('.well,#info').show();
-            var info_text = json.found + ' Documents';
+                info_text = info_text + ' on corpus ' + $('.activelan').text().toUpperCase();
 
-            if ($('#query').val() !== "") {
-                info_text = info_text + ' for Query "' + $('#query').val() + '"';
-            }
-            info_text = info_text + ' on corpus ' + $('.activelan').parent().attr('id').toUpperCase();
-
-            var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
-            if (topic != null) {
-                var topicname = $('#topics_autocomplete').val().replace(topic, '').slice(0, -1);
-                info_text = info_text + " associated with " + topicname + " topic";
-            }
-
-            if (json_date !== "") {
-                info_text = info_text + " between " + moment(json_date.start).format('YYYY-MM-DD') + " and " + moment(json_date.end).format('YYYY-MM-DD');
-            }
-            $('#info').text(info_text);
-
-            if (json.found > 0) {
-                var $pagination_list = $('#pagination_list');
-                if ($pagination_list.data("twbs-pagination")) {
-                    $pagination_list.twbsPagination('destroy');
+                var topic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
+                if (topic != null) {
+                    var topicname = $('#topics_autocomplete').val().replace(topic, '').slice(0, -1);
+                    info_text = info_text + " associated with " + topicname + " topic";
                 }
-                $pagination_list.twbsPagination({
-                    totalPages: Math.ceil(json.found / 10),
-                    initiateStartPageClick: false,
-                    startPage: 1,
-                    onPageClick: function (event, page) {
-                        abort();
-                        $('#loading').show();
-                        $('#tiles').empty();
-                        parse_documents(page);
+
+                if (json_date !== "") {
+                    info_text = info_text + " between " + moment(json_date.start).format('YYYY-MM-DD') + " and " + moment(json_date.end).format('YYYY-MM-DD');
+                }
+                $('#info').text(info_text);
+
+                if (json.found > 0) {
+                    var $pagination_list = $('#pagination_list');
+                    if ($pagination_list.data("twbs-pagination")) {
+                        $pagination_list.twbsPagination('destroy');
                     }
-                });
-            }
-            else {
-                $('.well').hide();
-                $('#empty').show();
-            }
-        },
-        async: true
-    });
+                    $pagination_list.twbsPagination({
+                        totalPages: Math.ceil(json.found / 10),
+                        initiateStartPageClick: false,
+                        startPage: 1,
+                        onPageClick: function (event, page) {
+                            abort();
+                            $('#loading').show();
+                            $('#tiles').empty();
+                            parse_documents(page);
+                        }
+                    });
+                }
+                else {
+                    $('.well').hide();
+                    $('#empty').show();
+                }
+            },
+            async: true
+        });
+    }
 });
 
 function parse_documents(page_num) {
@@ -440,7 +409,7 @@ function parse_sections_root() {
             $('#done_section').attr('data-delimeter', json.delimiter);
             $('#loading_slugline').hide();
             $('.well_slugline,#info_slugline').show();
-            $('#info_slugline').text(json.found + ' sluglines on corpus ' + corpus.toUpperCase());
+            $('#info_slugline').text(json.found + ' sluglines on corpus ' + $('.activelan').text().toUpperCase());
             for (var i = 0; i < json.sections.length; i++) {
                 $('#tiles_slugline').append('<li data-id=' + json.sections[i].id + '><a href="javascript:void(0)">' + json.sections[i].label + '</a></li>');
             }
@@ -503,7 +472,7 @@ function parse_section_level(id) {
             listItems.each(function (idx, li) {
                 slugline_current = slugline_current + $(li).find('a').text() + '/';
             });
-            $('#info_slugline').text(json.found + ' sluglines on corpus ' + corpus.toUpperCase() + ' for ' + slugline_current.slice(0, -1));
+            $('#info_slugline').text(json.found + ' sluglines on corpus ' + $('.activelan').text().toUpperCase() + ' for ' + slugline_current.slice(0, -1));
             for (var i = 0; i < json.sections.length; i++) {
                 $('#tiles_slugline').append('<li data-id=' + json.sections[i].id + '><a href="javascript:void(0)">' + json.sections[i].label + '</a></li>');
             }
@@ -703,8 +672,9 @@ $("#myModal").on("click", ".delete_tag", function (e) {
 });
 $("#tiles").on("click", ".topic_add", function (e) {
     e.stopPropagation();
+    var corpus = $('.activelan').parent().attr('id');
     var options_article = {
-        url: "http://" + window.location.hostname + ":5000/api/topics?corpus=apa&association=why:direct",
+        url: "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=why:direct",
         getValue: "search",
         minCharNumber: 2,
         list: {
@@ -751,7 +721,7 @@ $("#tiles").on("click", ".topics_autocomplete,[id^=eac-container-topics_autocomp
     e.stopPropagation();
 });
 
-$("#tiles").on("click", ".topic_include", function ( e ) {
+$("#tiles").on("click", ".topic_include", function (e) {
     e.stopPropagation();
     var corpus = $('.activelan').parent().attr('id');
     var document_id = $(this).parent('li').attr('data-id');
@@ -770,7 +740,6 @@ $("#tiles").on("click", ".topic_include", function ( e ) {
             type: "PUT",
             dataType: "json",
             url: "http://" + window.location.hostname + ":5000/api/topics/" + tid + "?corpus=" + corpus + "&document_id=" + document_id,
-            //url: "http://" + window.location.hostname + ":5000/api/topics/medtop:" + topic_id.slice(1, -1) + "?corpus=" + corpus + "&document_id=" + document_id,
             success: function () {
             },
             async: true
