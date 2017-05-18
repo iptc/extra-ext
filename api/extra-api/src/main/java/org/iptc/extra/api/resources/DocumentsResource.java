@@ -32,8 +32,10 @@ import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
+import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.es.ElasticSearchHandler;
+import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
@@ -51,11 +53,8 @@ public class DocumentsResource {
 	@Inject
     private RulesDAO dao;
 	
-	//@Inject
-    //private CorporaDAO corporaDAO;
-	
-	//@Inject
-    //private SchemasDAO schemasDAO;
+	@Inject
+    private CorporaDAO corporaDAO;
 	
 	private CQLMapper mapper = new CQLMapper();
 	
@@ -70,26 +69,17 @@ public class DocumentsResource {
 		
 		try {			
 			
-			List<String> fields = new ArrayList<String>();
-			fields.add("*");
-			//fields.add("title");
-			//fields.add("headline");
-			//fields.add("body");
-			//fields.add("slugline");
-			
-			/*
+				
 			Corpus corpus = corporaDAO.get(corpusId);
 			if(corpus == null) {
-				fields.add("title");
-				fields.add("body");
-				fields.add("slugline");
+				ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+				return Response.status(400).entity(msg).build();
 			}
-			else {
-				String schemaId = corpus.getSchemaId();
-				Schema schema = schemasDAO.get(schemaId);
-				fields.addAll(schema.getFieldNames());
-			}
-			*/
+			
+			List<String> fields = new ArrayList<String>();		
+			fields.add("*");
+			
+			String corpusName = corpus.getName();
 			
 			Rule savedRule = dao.get(rule.getId());
 			if(savedRule == null) {
@@ -106,7 +96,7 @@ public class DocumentsResource {
 			String topicId = savedRule.getTopicId();
 			
 			DocumentPagedResponse response = new DocumentPagedResponse();
-			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusId);
+			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusName);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
 			}
@@ -129,7 +119,7 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			Pair<Integer, List<Document>> results = es.findDocuments(qb, corpusId, page, nPerPage, fields);			
+			Pair<Integer, List<Document>> results = es.findDocuments(qb, corpusName, page, nPerPage, fields);			
 			response.setEntries(results.getValue());
 			
 			response.setTotal(results.getKey());
@@ -204,10 +194,14 @@ public class DocumentsResource {
 	private QueryBuilder getTopicQuery(String topicId) {
 		
 		BoolQueryBuilder bqb = boolQuery();
-		bqb.must(termQuery("direct_topics.id", topicId));
-		bqb.must(termQuery("direct_topics.exclude", false));
+		bqb.must(termQuery("topics.id", topicId));
+		bqb.must(termQuery("topics.exclude", false));
+		bqb.must(boolQuery()
+				.should(termQuery("topics.association", "why:direct"))
+				.should(termQuery("topics.association", "userdefined")));
 		
-		QueryBuilder qb = nestedQuery("direct_topics", bqb, ScoreMode.Total);
+		
+		QueryBuilder qb = nestedQuery("topics", bqb, ScoreMode.Total);
 		return qb;
 	}
 	

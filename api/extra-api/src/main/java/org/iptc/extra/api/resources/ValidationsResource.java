@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -26,7 +28,11 @@ import org.iptc.extra.core.cql.tree.ErrorMessageNode;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.cql.tree.utils.TreeUtils;
 import org.iptc.extra.core.cql.tree.visitor.ExtraValidator;
+import org.iptc.extra.core.daos.CorporaDAO;
+import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
+import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.utils.TextUtils;
 
 
@@ -36,10 +42,17 @@ public class ValidationsResource {
 	
 	private CQLMapper mapper = new CQLMapper();
 	
+	@Inject
+    private CorporaDAO corporaDAO;
+	
+	@Inject
+    private SchemasDAO schemasDAO;
+	
 	@POST
     @Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-    public Response postRuleValidation(Rule rule) {
+    public Response postRuleValidation(Rule rule,
+    		@QueryParam("corpus") String corpusId) {
 		try {
 			
 			String query = rule.getQuery();	
@@ -56,27 +69,39 @@ public class ValidationsResource {
 			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
 			Node root = syntaxTree.getRootNode();
 			
+			StringBuffer message = new StringBuffer();
+			
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 				response.put("valid", "false");
-				response.put("message", StringUtils.join(syntaxTree.getErrors(), "</br>"));
+				message.append(StringUtils.join(syntaxTree.getErrors(), "</br>"));
 			}
 			else {	
-				List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root);
+				Corpus corpus = corporaDAO.get(corpusId);
+				Schema schema = schemasDAO.get(corpus.getSchemaId());
+				
+				List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
 				if(invalidNodes.isEmpty()) {
 					response.put("valid", "true");
-					response.put("message", "The rule has correct syntax.");
 				}
 				else {
 					response.put("valid", "false");
-					response.put("message", "The rule has invalid operators/relations: </br> - " + StringUtils.join(invalidNodes, "</br> - "));
+					message.append("</br> The rule has invalid operators/relations: </br> - " + StringUtils.join(invalidNodes, "</br> - "));
+				}
+				
+				Set<String> unmatchedIndices = TreeUtils.validateSchema(root, schema);	
+				if(!unmatchedIndices.isEmpty()) {
+					response.put("valid", "false");
+					message.append("</br> Cannot match " + schema.getName() + " due to invalid indices: " + unmatchedIndices);
 				}
 			}
 			
 			if(root != null) {
-				QueryBuilder qb = mapper.toElasticSearch(root);
-				if(qb != null) {
-					String esDSL = "{ \"query\": " + qb.toString() + "}";
-					response.put("es_dsl", esDSL);	
+				if(response.get("valid").equals("true")) {
+					QueryBuilder qb = mapper.toElasticSearch(root);
+					if(qb != null) {
+						String esDSL = "{ \"query\": " + qb.toString() + "}";
+						response.put("es_dsl", esDSL);	
+					}
 				}
 				
 				String htmlTaggedCql = mapper.toHtml(root, "div");
@@ -96,8 +121,10 @@ public class ValidationsResource {
 				
 				Set<String> indices = TreeUtils.getIndices(root);
 				response.put("indices", indices);
+				
 			}
 			
+			response.put("message", message.toString());
 			response.put("rule", rule);
 			
 			GenericEntity<Map<String, Object>> entity = new GenericEntity<Map<String, Object>>(response) {};

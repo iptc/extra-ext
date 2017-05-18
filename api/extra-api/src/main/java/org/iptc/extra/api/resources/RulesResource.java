@@ -243,7 +243,7 @@ public class RulesResource {
 			return Response.status(404).entity(msg).build();
 		}
 
-		WriteResult r = dao.delete(ruleid);
+		WriteResult r = dao.deleteById(ruleid);
 		if(r.getN() == 0) {
 			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " failed to be deleted");
 			return Response.status(404).entity(msg).build();

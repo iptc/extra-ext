@@ -59,6 +59,7 @@ public class TaxonomyResource {
 			 long topics = dao.createQuery().filter("taxonomyId", taxonomy.getId()).count();
 			 taxonomy.setTopics(topics);
 		}
+		
 		PagedResponse<Taxonomy> response = new PagedResponse<Taxonomy>();
 		response.setEntries(taxonomies);
 		response.setTotal(total);
@@ -119,7 +120,7 @@ public class TaxonomyResource {
 			 return Response.status(404).entity(msg).build();
 		 }
 			
-		 WriteResult r = taxonomiesDao.delete(taxonomyid);
+		 WriteResult r = taxonomiesDao.deleteById(taxonomyid);
 		 if(r.getN() == 0) {
 			ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomyid + " failed to be deleted");
 			return Response.status(404).entity(msg).build();

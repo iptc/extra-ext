@@ -96,7 +96,7 @@ public class DictionariesResource {
 			return Response.status(404).entity(msg).build();
 		}
 		
-		dao.delete(dictionaryid);
+		dao.deleteById(dictionaryid);
 		return Response.status(204).entity(dictionary).build();
 	}
 }

@@ -9,6 +9,7 @@ import org.iptc.extra.api.databind.DocumentSerializer;
 import org.iptc.extra.api.responses.DocumentPagedResponse;
 import org.iptc.extra.core.types.document.Document;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
@@ -30,6 +31,8 @@ public class Application extends ResourceConfig {
 
     public static JacksonJaxbJsonProvider createJacksonJaxbJsonProvider() {
     	ObjectMapper mapper = new ObjectMapper();
+    	
+    	mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     	
     	SimpleModule module = new SimpleModule();
     	module.addSerializer(Document.class, new DocumentSerializer());
