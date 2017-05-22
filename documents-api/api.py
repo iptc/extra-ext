@@ -13,7 +13,7 @@ from elasticsearch_dsl.aggs import A
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-client = MongoClient('mongodb', 27027)
+client = MongoClient('mongodb', 27017)
 mongodb = client.extra
 es = Elasticsearch(hosts = [{'host': 'elasticsearch', 'port': 9200}])
 
