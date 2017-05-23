@@ -1,5 +1,6 @@
 package org.iptc.extra.api.binder;
 
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import javax.inject.Singleton;
@@ -12,14 +13,14 @@ import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.daos.TaxonomiesDAO;
 import org.iptc.extra.core.daos.TopicsDAO;
-import org.iptc.extra.core.es.ElasticSearchHandler;
+import org.iptc.extra.core.es.ElasticSearchClient;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
 import com.mongodb.MongoClient;
 
 /**
- * @author Petr Bouda (petr.bouda at oracle.com)
+ * @author Manos Schinas (manosetro@iti.gr)
  */
 public class ApplicationBinder extends AbstractBinder {
 
@@ -71,10 +72,14 @@ public class ApplicationBinder extends AbstractBinder {
         	bind(corporaDAO).to(CorporaDAO.class);
         	
         	String esHostname = properties.getProperty(ApplicationProperties.ES_HOST, "127.0.0.1");
-        	int esPort = Integer.parseInt(properties.getProperty(ApplicationProperties.ES_PORT, "9200"));
-        	ElasticSearchHandler es = new ElasticSearchHandler(esHostname, esPort);
-        	bind(es).to(ElasticSearchHandler.class);
-      
+        	int esPort = Integer.parseInt(properties.getProperty(ApplicationProperties.ES_PORT, "9300"));
+        	ElasticSearchClient es;
+			try {
+				es = new ElasticSearchClient(esHostname, esPort);
+	        	bind(es).to(ElasticSearchClient.class);
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
         }
     
     }

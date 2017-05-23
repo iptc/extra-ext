@@ -113,6 +113,12 @@ public class RulesResource {
 		
 		GenericEntity<PagedResponse<Rule> > entity = new GenericEntity<PagedResponse<Rule> >(response) {};
 		 
+		if(status != null && !status.equals("submitted")) {
+			// TODO: Submit rule into percolate index
+			
+			
+		}
+		
         return Response.ok(entity).build();
     }
     

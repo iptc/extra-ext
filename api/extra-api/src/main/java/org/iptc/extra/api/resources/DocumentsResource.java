@@ -2,9 +2,7 @@ package org.iptc.extra.api.resources;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -19,7 +17,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -34,10 +31,12 @@ import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
-import org.iptc.extra.core.es.ElasticSearchHandler;
+import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.es.ElasticSearchClient;
+import org.iptc.extra.core.es.ElasticSearchResponse;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
-import org.iptc.extra.core.types.document.Document;
+import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.utils.TextUtils;
 
 /**
@@ -48,13 +47,16 @@ import org.iptc.extra.core.utils.TextUtils;
 public class DocumentsResource {
 
 	@Inject
-	private ElasticSearchHandler es;
+	private ElasticSearchClient es;
 	
 	@Inject
     private RulesDAO dao;
 	
 	@Inject
     private CorporaDAO corporaDAO;
+
+	@Inject
+    private SchemasDAO schemasDAO;
 	
 	private CQLMapper mapper = new CQLMapper();
 	
@@ -68,16 +70,13 @@ public class DocumentsResource {
     		@DefaultValue("1") @QueryParam("page") int page) {
 		
 		try {			
-			
-				
 			Corpus corpus = corporaDAO.get(corpusId);
 			if(corpus == null) {
 				ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
 				return Response.status(400).entity(msg).build();
 			}
 			
-			List<String> fields = new ArrayList<String>();		
-			fields.add("*");
+			Schema schema = schemasDAO.get(corpus.getSchemaId());
 			
 			String corpusName = corpus.getName();
 			
@@ -119,10 +118,10 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			Pair<Integer, List<Document>> results = es.findDocuments(qb, corpusName, page, nPerPage, fields);			
-			response.setEntries(results.getValue());
+			ElasticSearchResponse results = es.findDocuments(qb, corpusName, page, nPerPage, schema);	
+			response.setEntries(results.getDocuments());
 			
-			response.setTotal(results.getKey());
+			response.setTotal(results.getFound());
 			response.setnPerPage(nPerPage);
 			response.setPage(page);
 
@@ -140,21 +139,21 @@ public class DocumentsResource {
 	private Map<String, Object> getCountAnnotations(QueryBuilder rulesQb, String topicId, String corpus) throws IOException {
 		Map<String, Object> counts = new HashMap<String, Object>();
 		
-		Integer allDocuments = es.countDocuments(matchAllQuery(), corpus);
+		long allDocuments = es.countDocuments(matchAllQuery(), corpus);
 		
-		Integer ruleMatches = es.countDocuments(rulesQb, corpus);
+		long ruleMatches = es.countDocuments(rulesQb, corpus);
 		
 		QueryBuilder topicsQuery = getTopicQuery(topicId);
-		Integer topicMatches = es.countDocuments(topicsQuery, corpus);
+		long topicMatches = es.countDocuments(topicsQuery, corpus);
 		
 		QueryBuilder ruleAndTopicQuery = getRulesAndTopicQuery(rulesQb, topicId);
-		Integer bothMatches = es.countDocuments(ruleAndTopicQuery, corpus);
+		long bothMatches = es.countDocuments(ruleAndTopicQuery, corpus);
 		
 		QueryBuilder onlyRuleQuery = getRulesOnlyQuery(rulesQb, topicId);
-		Integer ruleOnlyMatches = es.countDocuments(onlyRuleQuery, corpus);
+		long ruleOnlyMatches = es.countDocuments(onlyRuleQuery, corpus);
 		
 		QueryBuilder onlyTopicQuery = getTopicOnlyQuery(rulesQb, topicId);
-		Integer topicOnlyMatches = es.countDocuments(onlyTopicQuery, corpus);
+		long topicOnlyMatches = es.countDocuments(onlyTopicQuery, corpus);
 		
 		counts.put("ruleMatches", ruleMatches);
 		counts.put("topicMatches", topicMatches);
