@@ -154,7 +154,7 @@ class Documents(Resource):
         n_per_page = args['nPerPage'] if args['nPerPage'] is not None else 10
         search = search.sort('-versionCreated')
         search = search[(page-1)*n_per_page : page * n_per_page]
-        search = search.source(includes=['slugline', 'headline', 'title', 'versionCreated', 'body', 'id', 'topics', 'body_paragraphs'])
+        search = search.source(includes=['slugline', 'title', 'subtitle', 'versionCreated', 'body', 'id', 'topics', 'body_paragraphs'])
 
         if args['q'] is not None and args['q'] is not '':
             search = search.query('bool', must=Q('query_string', query=args['q'], default_field='stemmed_text_content', analyzer=lang, analyze_wildcard='true', default_operator='or'))
