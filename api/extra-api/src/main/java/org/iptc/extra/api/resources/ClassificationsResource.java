@@ -20,10 +20,12 @@ import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.daos.TaxonomiesDAO;
 import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.es.ElasticSearchResponse;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
+import org.iptc.extra.core.types.Taxonomy;
 import org.iptc.extra.core.types.document.Document;
 
 
@@ -36,6 +38,9 @@ public class ClassificationsResource {
 	
 	@Inject
     private SchemasDAO schemasDAO;
+
+	@Inject
+    private TaxonomiesDAO taxonomiesDAO;
 	
     @Inject
     private RulesDAO rulesDAO;
@@ -44,18 +49,32 @@ public class ClassificationsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response postDocument(Document document,
-    		@QueryParam("nPerPage") String schemaId,
+    		@QueryParam("schema") String schemaId,
+    		@QueryParam("taxonomy") String taxonomyId,
     		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage,
     		@DefaultValue("1") @QueryParam("page") int page) {
 		
 		Schema schema = schemasDAO.get(schemaId);
+		if(schema == null) {
+			ErrorMessage msg = new ErrorMessage("Schema " + schemaId + " does not exist");
+			return Response.status(404).entity(msg).build();
+		}
+		// TODO: validate document fields and process document 
+		
+		Taxonomy taxonomy = taxonomiesDAO.get(taxonomyId);
+		if(taxonomy == null) {
+			ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomyId + " does not exist");
+			return Response.status(404).entity(msg).build();
+		}
 		
 		try {
 			List<Rule> rules = new ArrayList<Rule>();
-			ElasticSearchResponse<String> result = es.findRules(document, "queries", page, nPerPage);
+			ElasticSearchResponse<String> result = es.findRules(document, taxonomy.getId(), schema.getId(), page, nPerPage);
 			for(String ruleId : result.getResults()) {
 				Rule rule = rulesDAO.get(ruleId);
-				rules.add(rule);
+				if(rule != null) {
+					rules.add(rule);
+				}
 			}
 			
 			PagedResponse<Rule> response = new PagedResponse<Rule>();
