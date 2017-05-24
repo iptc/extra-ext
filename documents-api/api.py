@@ -157,10 +157,10 @@ class Documents(Resource):
         search = search.source(includes=['slugline', 'title', 'subtitle', 'versionCreated', 'body', 'id', 'topics', 'body_paragraphs'])
 
         if args['q'] is not None and args['q'] is not '':
-            search = search.query('bool', must=Q('query_string', query=args['q'], default_field='stemmed_text_content', analyzer=lang, analyze_wildcard='true', default_operator='or'))
+            search = search.query('bool', must=Q('query_string', query=args['q'], fields=['title', 'body'], analyzer=lang, analyze_wildcard='true', default_operator='or'))
             search = search.highlight_options(number_of_fragments=0, pre_tags=['<span class="highlight">'], post_tags=['</span>'])
-            search = search.highlight('headline', fragment_size=0, require_field_match=False,)
-            search = search.highlight('body', fragment_size=0, require_field_match=False,)
+            search = search.highlight('title', fragment_size=0, require_field_match=True,)
+            search = search.highlight('body', fragment_size=0, require_field_match=True,)
             search = search.sort('_score', '-versionCreated')
 
         filters = []
@@ -206,9 +206,9 @@ class Documents(Resource):
         for hit in response:
             document = hit.to_dict()
             if 'highlight' in hit.meta:
-                if 'headline' in hit.meta.highlight:
-                    for headline_fragment in hit.meta.highlight.headline:
-                        document['headline'] = headline_fragment
+                if 'title' in hit.meta.highlight:
+                    for title_fragment in hit.meta.highlight.title:
+                        document['title'] = title_fragment
                         break
                 if 'body' in hit.meta.highlight:
                     for body_fragment in hit.meta.highlight.body:
