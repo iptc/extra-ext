@@ -32,6 +32,7 @@ $('#search_but').click(function () {
                     },
                     data: data,
                     success: function (json) {
+                        var subtitle = "";
                         $('#ruleMatches').text(json.annotations.ruleMatches);
                         $('#topicOnlyMatches').text(json.annotations.topicOnlyMatches);
                         $('#topicMatches').text(json.annotations.topicMatches);
@@ -45,7 +46,11 @@ $('#search_but').click(function () {
                             $('#wmd-input').attr('contenteditable', 'false');
                             $('#syntax_but,#search_but,#save_but,#delete_but,#corpus_select').attr('disabled', 'disabled');
                             for (var i = 0; i < json.entries.length; i++) {
-                                $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article"> Title: ' + json.entries[i].title + '<img class="exclude_topic"src="imgs/delete.png"> </p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
+                                subtitle = "";
+                                if (json.entries[i].hasOwnProperty('subtitle')) {
+                                    subtitle = '<h3 class="title_article subtitle"> <span>Subtitle:</span> ' + json.entries[i].subtitle + '</h3>';
+                                }
+                                $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article"><p class="title_article"> <span>Title:</span> ' + json.entries[i].title + '</p>' + subtitle + '<h3 class="title_body">Body:</h3>' + json.entries[i].body + '</div><p class="title_article"> <span>Title:</span> ' + json.entries[i].title + '<img class="exclude_topic"src="imgs/delete.png"> </p>' + subtitle + '<h3 class="title_body">Body:</h3><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
                             }
                             var $articles_pagination = $('#articles_pagination');
                             $('#result_articles,#well_articles').show();
@@ -782,6 +787,7 @@ function parse_articles(page) {
         },
         data: data,
         success: function (json) {
+            var subtitle = "";
             $('#ruleMatches').text(json.annotations.ruleMatches);
             $('#topicOnlyMatches').text(json.annotations.topicOnlyMatches);
             $('#topicMatches').text(json.annotations.topicMatches);
@@ -791,7 +797,11 @@ function parse_articles(page) {
             $('#precision').text(json.annotations.precision);
             $('#accuracy').text(json.annotations.accuracy);
             for (var i = 0; i < json.entries.length; i++) {
-                $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article"> Title: ' + json.entries[i].title + '<img class="exclude_topic"src="imgs/delete.png"></p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
+                subtitle = "";
+                if (json.entries[i].hasOwnProperty('subtitle')) {
+                    subtitle = '<h3 class="title_article subtitle"> <span>Subtitle:</span> ' + json.entries[i].subtitle + '</h3>';
+                }
+                $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article"><p class="title_article"> <span>Title:</span> ' + json.entries[i].title + '</p>' + subtitle + '<h3 class="title_body">Body:</h3>' + json.entries[i].body + '</div><p class="title_article"> <span>Title:</span> ' + json.entries[i].title + '<img class="exclude_topic"src="imgs/delete.png"></p>' + subtitle + '<h3 class="title_body">Body:</h3><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
             }
         },
         error: function () {
@@ -1186,6 +1196,7 @@ $('#stats_articles td').click(function () {
             },
             data: data,
             success: function (json) {
+                var subtitle = "";
                 $('#result_articles').empty();
                 $('#ruleMatches').text(json.annotations.ruleMatches);
                 $('#topicOnlyMatches').text(json.annotations.topicOnlyMatches);
@@ -1197,7 +1208,11 @@ $('#stats_articles td').click(function () {
                 $('#accuracy').text(json.annotations.accuracy);
                 if (json.entries.length > 0) {
                     for (var i = 0; i < json.entries.length; i++) {
-                        $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article">' + json.entries[i].body + '</div><p class="title_article"> Title: ' + json.entries[i].title + '<img class="exclude_topic"src="imgs/delete.png"></p><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
+                        subtitle = "";
+                        if (json.entries[i].hasOwnProperty('subtitle')) {
+                            subtitle = '<h3 class="title_article subtitle"> <span>Subtitle:</span> ' + json.entries[i].subtitle + '</h3>';
+                        }
+                        $('#result_articles').append('<div class="article" data-id="' + json.entries[i].id + '"><div style="display: none" class="hidden_article"><p class="title_article"> <span>Title:</span> ' + json.entries[i].title + '</p>' + subtitle + '<h3 class="title_body">Body:</h3>' + json.entries[i].body + '</div><p class="title_article"> <span>Title:</span> ' + json.entries[i].title + '<img class="exclude_topic"src="imgs/delete.png"></p>' + subtitle + '<h3 class="title_body">Body:</h3><p class="desc_article">' + json.entries[i].body_paragraphs[0].paragraph + '</p></div>');
                     }
                     var $articles_pagination = $('#articles_pagination');
                     $('#stats_articles,#result_articles,#well_articles,#back_rules').show();

@@ -608,6 +608,7 @@ pre {
 
 .title {
     margin-top: 5px;
+    font-weight: normal;
 }
 
 .number {
@@ -1153,11 +1154,18 @@ pre {
     color: #FFF;
     background: rgba(255, 255, 255, 0.15);
 }
-.disabled{
+div.disabled{
     opacity: 0.3;
     cursor: default;
     -webkit-transition: all 0.7s ease 0s;
     -moz-transition: all 0.7s ease 0s;
     -o-transition: all 0.7s ease 0s;
     transition: all 0.7s ease 0s;
+}
+.title span{
+    font-weight: bold;
+}
+.subtitle{
+    margin-top: -15px;
+    font-size: 15px;
 }

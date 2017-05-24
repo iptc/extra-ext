@@ -238,6 +238,12 @@ body, html {
     font-weight: bold;
     margin: 18px 0 0;
 }
+.title_article{
+    font-weight: normal;
+}
+.title_article span{
+    font-weight: bold;
+}
 
 .desc_article, .date_rule {
     margin: 5px 0;
@@ -1211,4 +1217,14 @@ div[contenteditable=false] {
     width: 12px;
     margin-left: 10px;
     cursor: pointer;
+}
+
+.subtitle{
+    margin-top: 1px;
+    font-size: 14px;
+}
+.title_body{
+    margin: 10px 0;
+    color: #3232ff;
+    font-size: inherit;
 }

@@ -158,10 +158,10 @@ $('#search_start').click(function () {
             url: "http://" + window.location.hostname + ":5000/api/documents?nPerPage=10&page=1&q=" + q + "&corpus=" + corpus + "&topic=" + topic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
             dataType: "json",
             success: function (json) {
-                var tags_anc = '', tags_dir = '', tags_user = '';
+                var tags_anc = '', tags_dir = '', tags_user = '', subtitle = '';
                 var date = '', slugline = '', style_exclude = '';
                 for (var i = 0; i < json.documents.length; i++) {
-                    tags_anc = '', tags_dir = '', slugline = '', tags_user = '';
+                    tags_anc = '', tags_dir = '', slugline = '', tags_user = '', subtitle = '';
                     for (var k = 0; k < json.documents[i].topics.length; k++) {
                         if (json.documents[i].topics[k].association === "why:ancestor") {
                             if (json.documents[i].topics[k].exclude === "true") {
@@ -199,11 +199,14 @@ $('#search_start').click(function () {
                     else {
                         style_exclude = "";
                     }
+                    if (json.documents[i].hasOwnProperty('subtitle')) {
+                        subtitle = '<h3 class="title subtitle"> <span>Subtitle:</span> ' + json.documents[i].subtitle + '</h3>';
+                    }
                     if (tags_user !== "") {
-                        $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> Title: ' + json.documents[i].title + '</h3> <p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                        $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> <span>Title:</span> ' + json.documents[i].title + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3> <p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                     }
                     else {
-                        $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> Title: ' + json.documents[i].title + '</h3> <p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                        $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> <span>Title:</span> ' + json.documents[i].title + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3> <p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                     }
                 }
                 $('#loading').hide();
@@ -281,10 +284,10 @@ function parse_documents(page_num) {
         url: "http://" + window.location.hostname + ":5000/api/documents?nPerPage=10&page=" + page_num + "&q=" + q + "&corpus=" + corpus + "&topic=" + topic + "&association=" + association + "&since=" + start + "&until=" + end + "&section=" + section,
         dataType: "json",
         success: function (json) {
-            var tags_anc = '', tags_dir = '', tags_user = '';
+            var tags_anc = '', tags_dir = '', tags_user = '', subtitle = '';
             var date = '', slugline = '', style_exclude = '';
             for (var i = 0; i < json.documents.length; i++) {
-                tags_anc = '', tags_dir = '', slugline = '', tags_user = '';
+                tags_anc = '', tags_dir = '', slugline = '', tags_user = '', subtitle = '';
                 for (var k = 0; k < json.documents[i].topics.length; k++) {
                     if (json.documents[i].topics[k].association === "why:ancestor") {
                         if (json.documents[i].topics[k].exclude === "true") {
@@ -321,11 +324,14 @@ function parse_documents(page_num) {
                 else {
                     style_exclude = "";
                 }
+                if (json.documents[i].hasOwnProperty('subtitle')) {
+                    subtitle = '<h3 class="title subtitle"> <span>Subtitle:</span> ' + json.documents[i].subtitle + '</h3>';
+                }
                 if (tags_user !== "") {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> Title: ' + json.documents[i].title + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> <span>Title:</span> ' + json.documents[i].title + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics user_defined_topics"><p class="topics_title">User Defined Topics</p><ul class="media_topic">' + tags_user + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                 }
                 else {
-                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> Title: ' + json.documents[i].title + '</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
+                    $('#tiles').append('<li style="' + style_exclude + '" data-id="' + json.documents[i].id + '"><div class="hidden_body">' + json.documents[i].body + '</div><ul class="breadcrumb">' + slugline + '</ul><p class="date">' + date + '</p><h3 class="title"> <span>Title:</span> ' + json.documents[i].title + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3><p>' + json.documents[i].body_paragraphs[0].paragraph + '</p><p class="topic_add">Add a topic</p><button class="topic_include btn btn-primary">Include</button><input class="topics_autocomplete" id="topics_autocomplete_' + i + '" placeholder="Type a topic..."/><div class="topics"><div class="media_topics"><p class="topics_title">Direct Topics</p><ul class="media_topic">' + tags_dir + '</ul></div><div class="media_topics hidden_topics"><p class="topics_title">Ancestor Topics</p><ul class="media_topic">' + tags_anc + '</ul></div></div></li>');
                 }
             }
             $('#loading').hide();
@@ -336,12 +342,16 @@ function parse_documents(page_num) {
 
 $(document).on("click", "#tiles > li", function () {
     var corpus = $('.activelan').parent().attr('id');
+    var subtitle = "";
+    if ($(this).find('.title').eq(1).length > 0) {
+        subtitle = '<h3 class="title subtitle">' + $(this).find('.title').eq(1).html() + '</h3>';
+    }
     if ($('.btn-primary').attr('id') == "xml_but") {
         if ($(this).find('.user_defined_topics').length > 0) {
-            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-default">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-primary">XML</button></div></div><div id="html_content" style="display: none"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('user_defined_topics', 'border').replace('hidden_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content"></div><a class="close-reveal-modal">&#215;</a>');
+            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-default">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-primary">XML</button></div></div><div id="html_content" style="display: none"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p><h3 class="title">' + $(this).find('.title').eq(0).html() + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('user_defined_topics', 'border').replace('hidden_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content"></div><a class="close-reveal-modal">&#215;</a>');
         }
         else {
-            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-default">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-primary">XML</button></div></div><div id="html_content" style="display: none"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('hidden_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content"></div><a class="close-reveal-modal">&#215;</a>');
+            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-default">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-primary">XML</button></div></div><div id="html_content" style="display: none"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p><h3 class="title">' + $(this).find('.title').eq(0).html() + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('hidden_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content"></div><a class="close-reveal-modal">&#215;</a>');
         }
         $.ajax({
             type: "GET",
@@ -355,10 +365,10 @@ $(document).on("click", "#tiles > li", function () {
     }
     else {
         if ($(this).find('.user_defined_topics').length > 0) {
-            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-primary">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-default">XML</button></div></div><div id="html_content"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('user_defined_topics', 'border').replace('hidden_topics', 'border').replace('user_defined_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content" style="display: none"></div><a class="close-reveal-modal">&#215;</a>');
+            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-primary">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-default">XML</button></div></div><div id="html_content"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p><h3 class="title">' + $(this).find('.title').eq(0).html() + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('user_defined_topics', 'border').replace('hidden_topics', 'border').replace('user_defined_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content" style="display: none"></div><a class="close-reveal-modal">&#215;</a>');
         }
         else {
-            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-primary">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-default">XML</button></div></div><div id="html_content"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('hidden_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content" style="display: none"></div><a class="close-reveal-modal">&#215;</a>');
+            $('#myModal').html('<div style="text-align: center"><div class="btn-group"><button type="button" id="html_but" class="btn btn-primary">HTML</button><button type="button" id="xml_but" data-id="' + $(this).attr('data-id') + '" class="btn btn-default">XML</button></div></div><div id="html_content"><ul class="breadcrumb">' + $(this).find('.breadcrumb').html() + '</ul><p class="date">' + $(this).find('.date').html() + '</p><h3 class="title">' + $(this).find('.title').eq(0).html() + '</h3>' + subtitle + '<h3 style="margin: 0">Body:</h3>' + $(this).find('.hidden_body').html() + $(this).find('.topics').html().replace('hidden_topics', 'border').replace(/media_topics/g, 'media_topics_popup_3') + '</div><div id="xml_content" style="display: none"></div><a class="close-reveal-modal">&#215;</a>');
         }
     }
     $('#myModal').reveal();
