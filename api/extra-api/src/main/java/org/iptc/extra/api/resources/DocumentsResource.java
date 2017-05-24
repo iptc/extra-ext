@@ -37,6 +37,7 @@ import org.iptc.extra.core.es.ElasticSearchResponse;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
+import org.iptc.extra.core.types.document.Document;
 import org.iptc.extra.core.utils.TextUtils;
 
 /**
@@ -118,8 +119,8 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			ElasticSearchResponse results = es.findDocuments(qb, corpusName, page, nPerPage, schema);	
-			response.setEntries(results.getDocuments());
+			ElasticSearchResponse<Document> results = es.findDocuments(qb, corpusName, page, nPerPage, schema);	
+			response.setEntries(results.getResults());
 			
 			response.setTotal(results.getFound());
 			response.setnPerPage(nPerPage);

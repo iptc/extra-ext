@@ -112,13 +112,6 @@ public class RulesResource {
 		response.setTotal(total);
 		
 		GenericEntity<PagedResponse<Rule> > entity = new GenericEntity<PagedResponse<Rule> >(response) {};
-		 
-		if(status != null && !status.equals("submitted")) {
-			// TODO: Submit rule into percolate index
-			
-			
-		}
-		
         return Response.ok(entity).build();
     }
     
@@ -221,8 +214,13 @@ public class RulesResource {
 				.set("updatedAt", t);
 		
 		if(newRule.getStatus() != null) {
-			rule.setStatus(newRule.getStatus());
-			ops.set("status", newRule.getStatus());
+			if(newRule.getStatus().equals("submitted")) {
+				// TODO: Submit rule into percolate index
+			}
+			else {
+				rule.setStatus(newRule.getStatus());
+				ops.set("status", newRule.getStatus());
+			}
 		}
 		else {
 			rule.setStatus("draft");
