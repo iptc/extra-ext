@@ -323,6 +323,9 @@ class Topic(Resource):
                 break
 
         if not exists:
+            if 'association' not in new_topic:
+                new_topic['association'] = 'userdefined'
+
             topics.append(new_topic)
             body = {'doc': {'topics': topics}}
             es.update(index=corpus, doc_type='documents', id=document_id, body=body)
