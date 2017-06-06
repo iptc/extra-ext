@@ -82,7 +82,15 @@ class Document(Resource):
 
             body = {'doc': {'topics': topics}}
             es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+        elif association == 'userdefined' and exclude == 'true':
+            topics = document['_source']['topics']
+            for topic in topics:
+                if topic['id'] == topic_id:
+                    topics.remove(topic)
+                    break
 
+            body = {'doc': {'topics': topics}}
+            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
         else:
             sbt = 'direct_topics' if (association is None or association == 'why:direct') else 'ancestor_topics'
             topics_subset = document['_source'][sbt]
