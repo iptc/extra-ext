@@ -325,6 +325,7 @@ class Topic(Resource):
         if not exists:
             if 'association' not in new_topic:
                 new_topic['association'] = 'userdefined'
+                new_topic['exclude'] = 'false'
 
             topics.append(new_topic)
             body = {'doc': {'topics': topics}}
