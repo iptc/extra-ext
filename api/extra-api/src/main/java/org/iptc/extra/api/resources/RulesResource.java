@@ -29,6 +29,7 @@ import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.daos.RulesDAO;
+import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.utils.TextUtils;
 import org.mongodb.morphia.Key;
@@ -58,6 +59,9 @@ public class RulesResource {
     @Inject
     private RulesDAO dao;
     
+	@Inject
+	private ElasticSearchClient es;
+	
     private CQLMapper mapper = new CQLMapper();
     
     /**
@@ -216,6 +220,7 @@ public class RulesResource {
 		if(newRule.getStatus() != null) {
 			if(newRule.getStatus().equals("submitted")) {
 				// TODO: Submit rule into percolate index
+				//es.submitRule(ruleid, null, "");
 			}
 			else {
 				rule.setStatus(newRule.getStatus());

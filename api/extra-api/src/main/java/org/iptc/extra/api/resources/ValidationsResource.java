@@ -71,14 +71,14 @@ public class ValidationsResource {
 			
 			StringBuffer message = new StringBuffer();
 			
+			Corpus corpus = corporaDAO.get(corpusId);
+			Schema schema = schemasDAO.get(corpus.getSchemaId());
+			
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 				response.put("valid", "false");
 				message.append(StringUtils.join(syntaxTree.getErrors(), "</br>"));
 			}
-			else {	
-				Corpus corpus = corporaDAO.get(corpusId);
-				Schema schema = schemasDAO.get(corpus.getSchemaId());
-				
+			else {		
 				List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
 				if(invalidNodes.isEmpty()) {
 					response.put("valid", "true");
@@ -97,7 +97,7 @@ public class ValidationsResource {
 			
 			if(root != null) {
 				if(response.get("valid").equals("true")) {
-					QueryBuilder qb = mapper.toElasticSearch(root);
+					QueryBuilder qb = mapper.toElasticSearch(root, schema);
 					if(qb != null) {
 						String esDSL = "{ \"query\": " + qb.toString() + "}";
 						response.put("es_dsl", esDSL);	

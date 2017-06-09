@@ -87,7 +87,7 @@ public class DocumentsResource {
 				return Response.status(404).entity(msg).build();
 			}
 			
-			QueryBuilder rulesQuery = getRuleQuery(rule);
+			QueryBuilder rulesQuery = getRuleQuery(rule, schema);
 			if(rulesQuery == null) {
 				ErrorMessage msg = new ErrorMessage("CQL to ES translation failed.");
 				return Response.status(400).entity(msg).build();
@@ -115,7 +115,7 @@ public class DocumentsResource {
 				qb = getTopicOnlyQuery(rulesQuery, topicId);
 			}
 			else {
-				// rule matches
+				// rule matches - default option 
 				qb = rulesQuery;
 			}
 			
@@ -177,18 +177,22 @@ public class DocumentsResource {
 		return counts;
 	}
 	
-	private QueryBuilder getRuleQuery(Rule rule) {
-		// parse rule 
-		String cql = rule.getQuery();
-		cql = TextUtils.clean(rule.getQuery());	
-		SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
-		if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
+	private QueryBuilder getRuleQuery(Rule rule, Schema  schema) {
+		try {
+			// parse rule 
+			String cql = rule.getQuery();
+			cql = TextUtils.clean(rule.getQuery());	
+			SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
+			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
+				return null;
+			}
+				
+			QueryBuilder qb = mapper.toElasticSearch(syntaxTree.getRootNode(), schema);
+			return qb;
+		}
+		catch(Exception e) {
 			return null;
 		}
-				
-		QueryBuilder qb = mapper.toElasticSearch(syntaxTree.getRootNode());
-		return qb;
-				
 	}
 	
 	private QueryBuilder getTopicQuery(String topicId) {
@@ -199,7 +203,6 @@ public class DocumentsResource {
 		bqb.must(boolQuery()
 				.should(termQuery("topics.association", "why:direct"))
 				.should(termQuery("topics.association", "userdefined")));
-		
 		
 		QueryBuilder qb = nestedQuery("topics", bqb, ScoreMode.Total);
 		return qb;

@@ -3,6 +3,7 @@ package org.iptc.extra.api.resources;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,7 +35,7 @@ import org.iptc.extra.core.types.document.Document;
 public class ClassificationsResource {
 
 	@Inject
-	ElasticSearchClient es;
+	private ElasticSearchClient es;
 	
 	@Inject
     private SchemasDAO schemasDAO;
@@ -59,8 +60,15 @@ public class ClassificationsResource {
 			ErrorMessage msg = new ErrorMessage("Schema " + schemaId + " does not exist");
 			return Response.status(404).entity(msg).build();
 		}
-		// TODO: validate document fields and process document 
 		
+		Set<String> documentFields = document.getFieldNames();
+		Set<String> schemaFields = schema.getFieldNames();
+		if(!schemaFields.containsAll(documentFields)) {
+			documentFields.removeAll(schemaFields);
+			ErrorMessage msg = new ErrorMessage("Document contains unknown fields: " + documentFields);
+			return Response.status(400).entity(msg).build();
+		}
+	
 		Taxonomy taxonomy = taxonomiesDAO.get(taxonomyId);
 		if(taxonomy == null) {
 			ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomyId + " does not exist");
