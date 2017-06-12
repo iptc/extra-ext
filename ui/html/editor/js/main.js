@@ -322,7 +322,7 @@ $('#search_rule_but').click(function () {
                             status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                             break;
                     }
-                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
+                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
                 }
                 if (json.total > 0) {
                     $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
@@ -511,7 +511,7 @@ $(function () {
                                             status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                                             break;
                                     }
-                                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
+                                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
                                 }
                                 if (json.total > 0) {
                                     $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
@@ -688,7 +688,7 @@ $('#lang_select').on('change', function () {
                                         status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                                         break;
                                 }
-                                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
+                                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
                             }
                             if (json.total > 0) {
                                 $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
@@ -864,7 +864,7 @@ function parse_rules(page) {
                         status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                         break;
                 }
-                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
+                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
             }
             var options = {
                 autoResize: true,
@@ -891,6 +891,17 @@ $("#result_rules").on("click", ".submit_rule", function (e) {
     e.stopPropagation();
     $(this).siblings('.status').html('<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>')
 });
+$("#result_rules").on("click", ".copy_rule", function (e) {
+    e.stopPropagation();
+    copyToClipboard($(this).parent('div').attr('data-id'));
+});
+function copyToClipboard(text) {
+    var $temp = $("<input>");
+    $("body").append($temp);
+    $temp.val(text).select();
+    document.execCommand("copy");
+    $temp.remove();
+}
 $("#result_articles").on("click", ".exclude_topic", function (e) {
     e.stopPropagation();
     var $this = $(this);
