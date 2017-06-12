@@ -1,5 +1,5 @@
 @media only screen and (max-width: 750px) {
-    #editor, #articles_results, #rules{
+    #editor, #articles_results, #rules {
         width: 100% !important;
     }
 
@@ -31,6 +31,7 @@ body, html {
 #overlay.open {
     display: block;
 }
+
 #articles_results {
     display: none;
 }
@@ -68,6 +69,10 @@ body, html {
     box-sizing: border-box;
     resize: none;
     outline: 0
+}
+
+#wmd-input {
+    white-space: pre;
 }
 
 .wmd-input {
@@ -146,13 +151,14 @@ body, html {
     height: calc(100% - 42px);
 }
 
-#editor, #rules{
+#editor, #rules {
     position: relative;
     width: 50%;
     float: left;
     vertical-align: top;
     height: 100%;
 }
+
 #articles {
     border-top: 1px dotted #c8ccd0;
     padding: 10px;
@@ -1068,7 +1074,8 @@ div[contenteditable=false] {
 #result_rules {
     position: relative;
 }
-.open_well{
+
+.open_well {
     height: calc(100% - 92px) !important;
 }
 

@@ -1,25 +1,29 @@
 $('#search_but').click(function () {
     $('#well_rules').show();
-    /*var obj = JSON.parse($('#wmd-input').text());
-    var str = JSON.stringify(obj, undefined, 4);
-    $('#wmd-input').html(syntaxHighlight(str));*/
-    $('#result_rules').empty();
-    for (var i = 0; i < 10; i++) {
-        $('#result_rules').append('<div class="article"><p class="title_article"> <span>Result:</span>'+i+' </p></div>');
-    }
-    $('#rules_list').addClass('open_well');
-    var $articles_pagination = $('#rules_pagination');
-    $('#result_articles,#well_articles').show();
-    if ($articles_pagination.data("twbs-pagination")) {
-        $articles_pagination.twbsPagination('destroy');
-    }
-    $articles_pagination.twbsPagination({
-        totalPages: 12,
-        initiateStartPageClick: false,
-        startPage: 1,
-        onPageClick: function (event, page) {
+    try {
+        var obj = JSON.parse($('#wmd-input').text());
+        var str = JSON.stringify(obj, undefined, 4);
+        $('#wmd-input').html(syntaxHighlight(str));
+        $('#result_rules').empty();
+        for (var i = 0; i < 10; i++) {
+            $('#result_rules').append('<div class="article"><p class="title_article"> <span>Result:</span>' + i + ' </p></div>');
         }
-    });
+        $('#rules_list').addClass('open_well');
+        var $articles_pagination = $('#rules_pagination');
+        $('#result_articles,#well_articles').show();
+        if ($articles_pagination.data("twbs-pagination")) {
+            $articles_pagination.twbsPagination('destroy');
+        }
+        $articles_pagination.twbsPagination({
+            totalPages: 12,
+            initiateStartPageClick: false,
+            startPage: 1,
+            onPageClick: function (event, page) {
+            }
+        });
+    } catch (ex) {
+        alert("Error");
+    }
 });
 $('[contenteditable]').on('focus', function () {
     var $this = $(this);
@@ -35,7 +39,7 @@ $('[contenteditable]').on('focus', function () {
 });
 $('#wmd-input').bind('change', function () {
     if ($(this).html() != "") {
-        $('#search_but').attr('disabled',false);
+        $('#search_but').attr('disabled', false);
     }
     else {
         $('#search_but').attr('disabled', true);
