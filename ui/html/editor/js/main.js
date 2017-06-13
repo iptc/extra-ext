@@ -41,7 +41,7 @@ $('#search_but').click(function () {
                         $('#recall').text(json.annotations.recall);
                         $('#precision').text(json.annotations.precision);
                         $('#accuracy').text(json.annotations.accuracy);
-                        $('#stats_articles,#back_articles').show();
+                        $('#stats_articles,#back_rules').show();
                         if (json.entries.length > 0) {
                             $('#wmd-input').attr('contenteditable', 'false');
                             $('#syntax_but,#search_but,#save_but,#delete_but,#corpus_select').attr('disabled', 'disabled');
@@ -923,6 +923,7 @@ $("#result_articles").on("click", ".include_topic", function (e) {
         dataType: "json",
         url: "http://" + window.location.hostname + ":5000/api/topics/" + $('#rule_topic').attr('data-id') + "?corpus=" + $('#corpus_select').val() + "&document_id=" + $this.parents('.article').attr('data-id'),
         success: function () {
+            $this.parents('.article').remove();
         },
         async: true
     });
