@@ -26,9 +26,11 @@ import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.ErrorMessageNode;
 import org.iptc.extra.core.cql.tree.Node;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
 import org.iptc.extra.core.cql.tree.utils.TreeUtils;
 import org.iptc.extra.core.cql.tree.visitor.ExtraValidator;
 import org.iptc.extra.core.daos.CorporaDAO;
+import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
@@ -41,6 +43,9 @@ import org.iptc.extra.core.utils.TextUtils;
 public class ValidationsResource {
 	
 	private CQLMapper mapper = new CQLMapper();
+	
+	@Inject
+    private RulesDAO rulesDAO;
 	
 	@Inject
     private CorporaDAO corporaDAO;
@@ -86,6 +91,23 @@ public class ValidationsResource {
 				else {
 					response.put("valid", "false");
 					message.append("</br> The rule has invalid operators/relations: </br> - " + StringUtils.join(invalidNodes, "</br> - "));
+				}
+				
+				List<ReferenceClause> references = TreeUtils.getReferences(root);
+				if(!references.isEmpty()) {
+					for(ReferenceClause reference : references) {
+						String refRuleId = reference.getRuleId();
+						Rule refRule = rulesDAO.get(refRuleId);
+						if(refRule == null) {
+							response.put("valid", "false");
+							reference.setValid(false);
+							message.append("</br> Rule " + refRuleId + " does not exist.");
+						}
+						else {
+							reference.setRule(refRule);
+							validateReferenceRules(reference, schema);
+						}
+					}
 				}
 				
 				Set<String> unmatchedIndices = TreeUtils.validateSchema(root, schema);	
@@ -134,6 +156,22 @@ public class ValidationsResource {
 			ErrorMessage error = new ErrorMessage(e.getMessage());
 			return Response.status(400).entity(error).build();
 		}
+	}
+	
+	private void validateReferenceRules(ReferenceClause reference, Schema schema) {
+		
+		Rule rule = reference.getRule();
+		
+		String query = rule.getQuery();	
+		
+		SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+		reference.setRuleSyntaxTree(syntaxTree);
+		
+		//Node root = syntaxTree.getRootNode();
+		
+		//List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
+		//Set<String> unmatchedIndices = TreeUtils.validateSchema(root, schema);
+		//List<ReferenceClause> references = TreeUtils.getReferences(root);
 	}
 	
 	@POST @Path("{schemaid}")

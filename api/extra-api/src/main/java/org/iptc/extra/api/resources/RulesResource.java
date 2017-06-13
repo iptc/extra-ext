@@ -223,9 +223,10 @@ public class RulesResource {
 				//es.submitRule(ruleid, null, "");
 			}
 			else {
-				rule.setStatus(newRule.getStatus());
-				ops.set("status", newRule.getStatus());
+				rule.setStatus(newRule.getStatus());	
 			}
+			
+			ops.set("status", newRule.getStatus());
 		}
 		else {
 			rule.setStatus("draft");

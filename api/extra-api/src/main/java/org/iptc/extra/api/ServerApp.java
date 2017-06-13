@@ -18,9 +18,6 @@ import java.util.logging.Logger;
 public class ServerApp {
 	
 	public static final String PROPS_FILE = "application.properties";
-	
-    // Base URI the Grizzly HTTP server will listen on
-    
     
     public static void main(String[] args) {
         try {

@@ -3,6 +3,7 @@ package org.iptc.extra.api.resources;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -29,6 +30,9 @@ import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
+import org.iptc.extra.core.cql.tree.Node;
+import org.iptc.extra.core.cql.tree.ReferenceClause;
+import org.iptc.extra.core.cql.tree.utils.TreeUtils;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
@@ -133,8 +137,6 @@ public class DocumentsResource {
 			ErrorMessage msg = new ErrorMessage(e.getMessage());
 			return Response.status(400).entity(msg).build();
 		}
-		
-		
 	}
 	
 	private Map<String, Object> getCountAnnotations(QueryBuilder rulesQb, String topicId, String corpus) throws IOException {
@@ -187,7 +189,22 @@ public class DocumentsResource {
 				return null;
 			}
 				
-			QueryBuilder qb = mapper.toElasticSearch(syntaxTree.getRootNode(), schema);
+			Node root = syntaxTree.getRootNode();
+			List<ReferenceClause> references = TreeUtils.getReferences(root);
+			if(!references.isEmpty()) {
+				for(ReferenceClause reference : references) {
+					String refRuleId = reference.getRuleId();
+					Rule refRule = dao.get(refRuleId);
+					if(refRule != null) {
+						reference.setRule(refRule);
+						
+						String query = refRule.getQuery();	
+						reference.setRuleSyntaxTree(CQLExtraParser.parse(query));
+					}
+				}
+			}
+			
+			QueryBuilder qb = mapper.toElasticSearch(root, schema);
 			return qb;
 		}
 		catch(Exception e) {
