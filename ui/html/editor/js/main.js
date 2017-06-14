@@ -129,7 +129,8 @@ $('#submit_but').click(function () {
                         unsaved_rule = false;
                         $('#rule_name_sub').text($('#rule_name').text());
                         $('#myModal2').reveal();
-                        $('.highlight_rule').find('.legendtext').text("Submitted")
+                        $('.highlight_rule').find('.legendtext').text("Submitted");
+                        $('.highlight_rule').find('.legendcolor').css("background-color","#C7A27C");
                     },
                     error: function (e) {
                     }
@@ -176,9 +177,9 @@ $("#result_rules").on("click", ".rule:not(.highlight_rule)", function () {
         $('#save_but').attr('data-id', $(this).attr('data-id'));
         $('#wmd-input').attr('contenteditable', 'true');
         if ($('#corpus_select').val()) {
-            $('#search_but,#syntax_but').removeAttr('disabled');
+            $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
         }
-        $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
+        $('#save_but,#delete_but').removeAttr('disabled');
         $('#editor,#rule_close').show();
         $('#success_modal,#error_modal').slideUp();
         $('.rule').removeClass('highlight_rule');
@@ -192,9 +193,9 @@ $('#back_articles').click(function () {
 $('#back_rules').click(function () {
     $('#wmd-input').attr('contenteditable', 'true');
     if ($('#corpus_select').val()) {
-        $('#search_but,#syntax_but').removeAttr('disabled');
+        $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
     }
-    $('#save_but,#delete_but,#corpus_select,#submit_but').removeAttr('disabled');
+    $('#save_but,#delete_but,#corpus_select').removeAttr('disabled');
     $('#articles_results').hide();
     $('#rules').show();
 });
@@ -423,9 +424,9 @@ $('#create_rule_but').click(function () {
         else {
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but,#syntax_but').removeAttr('disabled');
+                $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -1045,9 +1046,9 @@ $('#save_changes').click(function () {
             $('#save_but').attr('data-id', modal_action_1.attr('data-id'));
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but,#syntax_but').removeAttr('disabled');
+                $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#success_modal,#error_modal').slideUp();
             $('.rule').removeClass('highlight_rule');
@@ -1056,9 +1057,9 @@ $('#save_changes').click(function () {
         case 2:
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but,#syntax_but').removeAttr('disabled');
+                $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -1141,9 +1142,9 @@ $('#dismiss_changes').click(function () {
             $('#save_but').attr('data-id', modal_action_1.attr('data-id'));
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but,#syntax_but').removeAttr('disabled');
+                $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#success_modal,#error_modal').slideUp();
             $('.rule').removeClass('highlight_rule');
@@ -1153,9 +1154,9 @@ $('#dismiss_changes').click(function () {
 
             $('#wmd-input').attr('contenteditable', 'true');
             if ($('#corpus_select').val()) {
-                $('#search_but,#syntax_but').removeAttr('disabled');
+                $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
+            $('#save_but,#delete_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
