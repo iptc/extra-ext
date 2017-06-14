@@ -1167,7 +1167,7 @@ div[contenteditable=false] {
 .status .legendcolor{
     margin-left: 0;
 }
-.submit_rule{
+.copy_rule{
     position: relative;
     float: left;
     margin: 0;
@@ -1175,14 +1175,6 @@ div[contenteditable=false] {
     font-weight: bold;
     right: 6px;
     top: -6px;
-}
-.copy_rule {
-    position: relative;
-    float: left;
-    color: #777;
-    font-weight: bold;
-    right: 6px;
-    margin: 0 0 -6px;
 }
 #result_rules {
     position: relative;

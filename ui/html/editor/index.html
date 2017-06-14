@@ -54,6 +54,16 @@
     <button type="button" id="dismiss_changes" style="background:#D63230" class="btn">Dismiss changes</button>
     <a class="close-reveal-modal">&#215;</a>
 </div>
+<div id="myModal2" class="reveal-modal">
+    <h1>Rule: <span id="rule_name_sub"></span></h1>
+    <p>Submitted</p>
+    <a class="close-reveal-modal">&#215;</a>
+</div>
+<div id="myModal3" class="reveal-modal">
+    <h1>Rule: <span id="rule_name_save"></span></h1>
+    <p>Saved</p>
+    <a class="close-reveal-modal">&#215;</a>
+</div>
 <div class="page_wrapper">
     <div id="editor">
         <h2 class="background"><span>EDITOR</span></h2>
@@ -71,6 +81,9 @@
                         <select required id="corpus_select">
                             <option value="" disabled selected>Corpus...</option>
                         </select>
+                    </li>
+                    <li style="float: right">
+                        <button type="button" id="submit_but" class="btn" disabled>Submit</button>
                     </li>
 
                 </ul>

@@ -44,7 +44,7 @@ $('#search_but').click(function () {
                         $('#stats_articles,#back_rules').show();
                         if (json.entries.length > 0) {
                             $('#wmd-input').attr('contenteditable', 'false');
-                            $('#syntax_but,#search_but,#save_but,#delete_but,#corpus_select').attr('disabled', 'disabled');
+                            $('#syntax_but,#search_but,#save_but,#delete_but,#corpus_select,#submit_but').attr('disabled', 'disabled');
                             switch ($('.active_match').attr('id')) {
                                 case "topicMatches":
                                 case "topicOnlyMatches":
@@ -101,6 +101,49 @@ $('#search_but').click(function () {
     });
 
 });
+$('#submit_but').click(function () {
+    var viewData = {
+        "query": $('#wmd-input').html(),
+        "id": $('#save_but').attr('data-id')
+    };
+    var data = JSON.stringify(viewData);
+    $.ajax({
+        type: 'POST',
+        url: 'http://' + window.location.hostname + ':8888/extra/api/validations?corpus=' + $('#corpus_select').val(),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: data,
+        success: function (json) {
+            if (json.valid === "true") {
+                $.ajax({
+                    type: 'PUT',
+                    url: 'http://' + window.location.hostname + ':8888/extra/api/rules/' + $('#save_but').attr('data-id') + '/_submit?corpus=' + $('#corpus_select').val(),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    success: function () {
+                        $('#json_close').click();
+                        unsaved_rule = false;
+                        $('#rule_name_sub').text($('#rule_name').text());
+                        $('#myModal2').reveal();
+                        $('.highlight_rule').find('.legendtext').text("Submitted")
+                    },
+                    error: function (e) {
+                    }
+                });
+            }
+            else {
+                $('#syntax_but').click();
+            }
+        },
+        error: function (e) {
+        }
+    });
+
+});
 $("#result_articles").on("click", ".article", function () {
     $('#stats_articles,#result_articles,#well_articles,#back_rules,#zero_articles').hide();
     $('#article_big').html($(this).find('.hidden_article').html());
@@ -135,7 +178,7 @@ $("#result_rules").on("click", ".rule:not(.highlight_rule)", function () {
         if ($('#corpus_select').val()) {
             $('#search_but,#syntax_but').removeAttr('disabled');
         }
-        $('#save_but,#delete_but').removeAttr('disabled');
+        $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
         $('#editor,#rule_close').show();
         $('#success_modal,#error_modal').slideUp();
         $('.rule').removeClass('highlight_rule');
@@ -151,7 +194,7 @@ $('#back_rules').click(function () {
     if ($('#corpus_select').val()) {
         $('#search_but,#syntax_but').removeAttr('disabled');
     }
-    $('#save_but,#delete_but,#corpus_select').removeAttr('disabled');
+    $('#save_but,#delete_but,#corpus_select,#submit_but').removeAttr('disabled');
     $('#articles_results').hide();
     $('#rules').show();
 });
@@ -271,6 +314,8 @@ $('#save_but_annotation').click(function () {
             $('#rule_buttons').show();
             $('#annotations_input').val("");
             $('#success_modal,#error_modal').slideUp();
+            $('#rule_name_save').text($('#rule_name').text());
+            $('#myModal3').reveal();
             if (modal_action === 4) {
                 window.location.href = modal_action_1;
             }
@@ -292,6 +337,7 @@ $('#cancel_rule_but').click(function () {
 });
 $('#search_rule_but').click(function () {
     if ($('#lang_select').val()) {
+        $('#rule_close').click();
         $('#zero_rules').hide();
         $('#result_rules').empty();
         var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
@@ -323,10 +369,10 @@ $('#search_rule_but').click(function () {
                             status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                             break;
                     }
-                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
+                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="copy_rule">Copy ID</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
                 }
                 if (json.total > 0) {
-                    $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
+                    //$('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
                     var $articles_pagination = $('#rules_pagination');
                     $('#well_rules').show();
                     $('#rules_list').addClass('rules_result');
@@ -379,7 +425,7 @@ $('#create_rule_but').click(function () {
             if ($('#corpus_select').val()) {
                 $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -513,10 +559,10 @@ $(function () {
                                             status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                                             break;
                                     }
-                                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
+                                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="copy_rule">Copy ID</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
                                 }
                                 if (json.total > 0) {
-                                    $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
+                                    //$('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
                                     var $articles_pagination = $('#rules_pagination');
                                     $('#well_rules').show();
                                     $('#rules_list').addClass('rules_result');
@@ -692,10 +738,10 @@ $('#lang_select').on('change', function () {
                                         status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                                         break;
                                 }
-                                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
+                                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="copy_rule">Copy ID</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
                             }
                             if (json.total > 0) {
-                                $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
+                                //$('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
                                 var $articles_pagination = $('#rules_pagination');
                                 $('#well_rules').show();
                                 $('#rules_list').addClass('rules_result');
@@ -780,10 +826,11 @@ $('#rule_close').click(function () {
         $('.highlight_rule').removeClass('highlight_rule');
         $('#success_modal,#error_modal').slideUp();
         $('#wmd-input').attr('contenteditable', 'false').html('');
-        $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+        $('#syntax_but,#search_but,#save_but,#delete_but,#submit_but').attr('disabled', 'disabled');
         $('#annotations').hide();
         $('#rule_buttons').show();
         $('#annotations_input').val("");
+        $('#save_but').attr('data-id', '-');
         unsaved_rule = false;
     }
 });
@@ -872,7 +919,7 @@ function parse_rules(page) {
                         status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
                         break;
                 }
-                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="submit_rule">Submit</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div><p class="copy_rule">Copy ID</p></div>');
+                $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="copy_rule">Copy ID</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
             }
             var options = {
                 autoResize: true,
@@ -884,7 +931,7 @@ function parse_rules(page) {
 
             var handler = $('#result_rules > .rule');
             handler.wookmark(options);
-            $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
+            //$('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
         },
         async: true
     });
@@ -1000,7 +1047,7 @@ $('#save_changes').click(function () {
             if ($('#corpus_select').val()) {
                 $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#success_modal,#error_modal').slideUp();
             $('.rule').removeClass('highlight_rule');
@@ -1011,7 +1058,7 @@ $('#save_changes').click(function () {
             if ($('#corpus_select').val()) {
                 $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -1059,10 +1106,11 @@ $('#save_changes').click(function () {
             $('.highlight_rule').removeClass('highlight_rule');
             $('#success_modal,#error_modal').slideUp();
             $('#wmd-input').attr('contenteditable', 'false').html('');
-            $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+            $('#syntax_but,#search_but,#save_but,#delete_but,#submit_but').attr('disabled', 'disabled');
             $('#annotations').hide();
             $('#rule_buttons').show();
             $('#annotations_input').val("");
+            $('#save_but').attr('data-id', '-');
             unsaved_rule = false;
             break;
         case 4:
@@ -1095,7 +1143,7 @@ $('#dismiss_changes').click(function () {
             if ($('#corpus_select').val()) {
                 $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#success_modal,#error_modal').slideUp();
             $('.rule').removeClass('highlight_rule');
@@ -1107,7 +1155,7 @@ $('#dismiss_changes').click(function () {
             if ($('#corpus_select').val()) {
                 $('#search_but,#syntax_but').removeAttr('disabled');
             }
-            $('#save_but,#delete_but').removeAttr('disabled');
+            $('#save_but,#delete_but,#submit_but').removeAttr('disabled');
             $('#editor,#rule_close').show();
             $('#rule_name').html($('#create_rule').val());
             $('#wmd-input').html('');
@@ -1155,10 +1203,11 @@ $('#dismiss_changes').click(function () {
             $('.highlight_rule').removeClass('highlight_rule');
             $('#success_modal,#error_modal').slideUp();
             $('#wmd-input').attr('contenteditable', 'false').html('');
-            $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+            $('#syntax_but,#search_but,#save_but,#delete_but,#submit_but').attr('disabled', 'disabled');
             $('#annotations').hide();
             $('#rule_buttons').show();
             $('#annotations_input').val("");
+            $('#save_but').attr('data-id', '-');
             unsaved_rule = false;
             break;
         case 4:
@@ -1200,8 +1249,12 @@ $("#delete_edit").click(function () {
                     $('#rule_topic').html('-');
                     $('#rule_topic').attr('data-id', '-');
                     $('#wmd-input').attr('contenteditable', 'false').html('');
-                    $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+                    $('#syntax_but,#search_but,#save_but,#delete_but,#submit_but').attr('disabled', 'disabled');
                     $('#rule_close').hide();
+                    $('#annotations').hide();
+                    $('#rule_buttons').show();
+                    $('#annotations_input').val("");
+                    $('#save_but').attr('data-id', '-');
                 }
                 $('.deleted_selection_rule').remove();
                 $('#search_rule_but').click();
@@ -1222,11 +1275,13 @@ $("#delete_edit").click(function () {
                 $('#rule_topic').html('-');
                 $('#rule_topic').attr('data-id', '-');
                 $('#wmd-input').attr('contenteditable', 'false').html('');
-                $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+                $('#syntax_but,#search_but,#save_but,#delete_but,#submit_but').attr('disabled', 'disabled');
                 $('#rule_close').hide();
                 $('#success_modal,#error_modal').slideUp();
                 $('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').remove();
                 $('#search_rule_but').click();
+                $('#annotations_input').val("");
+                $('#save_but').attr('data-id', '-');
             },
             error: function (e) {
             }
