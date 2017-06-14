@@ -1,24 +1,76 @@
 $('#search_but').click(function () {
-    $('#well_rules').show();
     try {
         var obj = JSON.parse($('#wmd-input').text());
         var str = JSON.stringify(obj, undefined, 4);
         $('#wmd-input').html(syntaxHighlight(str));
-        $('#result_rules').empty();
-        for (var i = 0; i < 10; i++) {
-            $('#result_rules').append('<div class="article"><p class="title_article"> <span>Result:</span>' + i + ' </p></div>');
-        }
-        $('#rules_list').addClass('open_well');
-        var $articles_pagination = $('#rules_pagination');
-        $('#result_articles,#well_articles').show();
-        if ($articles_pagination.data("twbs-pagination")) {
-            $articles_pagination.twbsPagination('destroy');
-        }
-        $articles_pagination.twbsPagination({
-            totalPages: 12,
-            initiateStartPageClick: false,
-            startPage: 1,
-            onPageClick: function (event, page) {
+
+        $.ajax({
+            type: 'POST',
+            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?schemaId='+$('#schema_select').val(),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: obj,
+            success: function (json) {
+                var status;
+                for (var t = 0; t < json.entries.length; t++) {
+                    var d = new Date(json.entries[t].createdAt);
+                    d = ISODateString(d);
+                    var d2 = new Date(json.entries[t].updatedAt);
+                    d2 = ISODateString(d2);
+                    switch (json.entries[t].status) {
+                        case "new":
+                            status = '<div class="legendcolor" style="background-color:#EE6C4D;"></div><div class="legendtext">New</div>';
+                            break;
+                        case "draft":
+                            status = '<div class="legendcolor" style="background-color:#6A8D73;"></div><div class="legendtext">Draft</div>';
+                            break;
+                        case "submitted":
+                            status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
+                            break;
+                    }
+                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="copy_rule">Copy ID</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
+                }
+                if (json.total > 0) {
+                    //$('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
+                    var $articles_pagination = $('#rules_pagination');
+                    $('#well_rules').show();
+                    $('#rules_list').addClass('open_well');
+                    if ($articles_pagination.data("twbs-pagination")) {
+                        $articles_pagination.twbsPagination('destroy');
+                    }
+                    var total_page = json.total / json.nPerPage;
+                    if (total_page % 1 != 0) {
+                        total_page = Math.floor(json.total / json.nPerPage) + 1
+                    }
+                    $articles_pagination.twbsPagination({
+                        totalPages: total_page,
+                        initiateStartPageClick: false,
+                        startPage: 1,
+                        onPageClick: function (event, page) {
+                            $('#result_rules').empty();
+                            parse_rules(page);
+                        }
+                    });
+                    var options = {
+                        autoResize: true,
+                        container: $('#result_rules'),
+                        offset: 10,
+                        itemWidth: 322,
+                        outerOffset: 0
+                    };
+
+                    var handler = $('#result_rules > .rule');
+                    handler.wookmark(options);
+                }
+                else {
+                    $('#zero_rules').show();
+                    $('#well_rules').hide();
+                    $('#rules_list').removeClass('open_well');
+                }
+            },
+            error: function (e) {
             }
         });
     } catch (ex) {
@@ -38,14 +90,33 @@ $('[contenteditable]').on('focus', function () {
     return $this;
 });
 $('#wmd-input').bind('change', function () {
-    if ($(this).html() != "") {
-        $('#search_but').attr('disabled', false);
+    if ($('#schema_select').val()) {
+        if ($(this).html() != "") {
+            $('#search_but').attr('disabled', false);
+        }
+        else {
+            $('#search_but').attr('disabled', true);
+        }
     }
-    else {
-        $('#search_but').attr('disabled', true);
+});
+$('#schema_select').on('change', function () {
+    if ($("#wmd-input").html() !== "") {
+        $('#search_but').attr('disabled', false);
     }
 });
 $(function () {
+    $.ajax({
+        type: "GET",
+        url: "http://" + window.location.hostname + ":8888/extra/api/schemas",
+        dataType: "json",
+        success: function (json) {
+            for (var i = 0; i < json.entries.length; i++) {
+                $('#schema_select').append('<option value="' + json.entries[i].id + '">' + json.entries[i].name + '</option>');
+            }
+            $('#schema_select').removeAttr('disabled');
+        },
+        async: true
+    });
     var width = 212,
         height = 44 * 4,
         speed = 300,

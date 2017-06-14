@@ -274,7 +274,6 @@ $('#syntax_but').click(function () {
 
 });
 $('#save_but').click(function () {
-
     $('#annotations').show();
     $('#rule_buttons').hide();
     var today = new Date();

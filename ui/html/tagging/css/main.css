@@ -1129,3 +1129,21 @@ div[contenteditable=false] {
     color: #3232ff;
     font-size: inherit;
 }
+
+#schema_select:required:invalid {
+    color: gray;
+}
+
+#schema_select option[value=""][disabled] {
+    display: none;
+}
+
+#schema_select option {
+    color: black;
+}
+
+#schema_select {
+    position: relative;
+    top: 4px;
+    left: 10px;
+}
