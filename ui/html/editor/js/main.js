@@ -253,7 +253,8 @@ $('#delete_but').click(function () {
 });
 $('#save_but_annotation').click(function () {
     var viewData = {
-        "query": $('#wmd-input').html()
+        "query": $('#wmd-input').html(),
+        "status": $('.highlight_rule').find('.legendtext').text().toLowerCase()
     };
     var data = JSON.stringify(viewData);
     $.ajax({
@@ -483,6 +484,7 @@ $(function () {
                 onChooseEvent: function (e) {
                 },
                 onHideListEvent: function () {
+                    $('#rule_close').click();
                     $('#zero_rules').hide();
                     $('#result_rules').empty();
                     var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
@@ -641,6 +643,7 @@ $('#lang_select').on('change', function () {
         },
         async: true
     });
+    $('#rule_close').click();
     $('#topics_autocomplete,#search_rule_but').removeAttr('disabled');
     $('#result_rules').empty();
     $('#well_rules,#zero_rules').hide();
@@ -660,6 +663,7 @@ $('#lang_select').on('change', function () {
             onChooseEvent: function (e) {
             },
             onHideListEvent: function () {
+                $('#rule_close').click();
                 $('#zero_rules').hide();
                 $('#result_rules').empty();
                 var mediatopic = $('#topics_autocomplete').val().match(/(?:\()[^\(\)]*?(?:\))/g);
@@ -777,6 +781,9 @@ $('#rule_close').click(function () {
         $('#success_modal,#error_modal').slideUp();
         $('#wmd-input').attr('contenteditable', 'false').html('');
         $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+        $('#annotations').hide();
+        $('#rule_buttons').show();
+        $('#annotations_input').val("");
         unsaved_rule = false;
     }
 });
@@ -842,6 +849,7 @@ function parse_rules(page) {
     else {
         mediatopic = "";
     }
+    $('#rule_close').click();
     $.ajax({
         type: "GET",
         url: "http://" + window.location.hostname + ":8888/extra/api/rules?page=" + page + "&taxonomy=" + $('#lang_select').val() + "&topicId=" + mediatopic,
@@ -1052,6 +1060,9 @@ $('#save_changes').click(function () {
             $('#success_modal,#error_modal').slideUp();
             $('#wmd-input').attr('contenteditable', 'false').html('');
             $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+            $('#annotations').hide();
+            $('#rule_buttons').show();
+            $('#annotations_input').val("");
             unsaved_rule = false;
             break;
         case 4:
@@ -1145,6 +1156,9 @@ $('#dismiss_changes').click(function () {
             $('#success_modal,#error_modal').slideUp();
             $('#wmd-input').attr('contenteditable', 'false').html('');
             $('#syntax_but,#search_but,#save_but,#delete_but').attr('disabled', 'disabled');
+            $('#annotations').hide();
+            $('#rule_buttons').show();
+            $('#annotations_input').val("");
             unsaved_rule = false;
             break;
         case 4:
