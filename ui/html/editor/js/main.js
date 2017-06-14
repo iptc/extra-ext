@@ -130,7 +130,7 @@ $('#submit_but').click(function () {
                         $('#rule_name_sub').text($('#rule_name').text());
                         $('#myModal2').reveal();
                         $('.highlight_rule').find('.legendtext').text("Submitted");
-                        $('.highlight_rule').find('.legendcolor').css("background-color","#C7A27C");
+                        $('.highlight_rule').find('.legendcolor').css("background-color", "#C7A27C");
                     },
                     error: function (e) {
                     }
@@ -673,7 +673,7 @@ $(function () {
 });
 $('#corpus_select').on('change', function () {
     if ($("#wmd-input").attr("contentEditable") === "true") {
-        $('#search_but,#syntax_but').removeAttr('disabled');
+        $('#search_but,#syntax_but,#submit_but').removeAttr('disabled');
     }
 });
 $('#lang_select').on('change', function () {
