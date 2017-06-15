@@ -11,7 +11,7 @@ $('#search_but').click(function () {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            data: obj,
+            data: str,
             success: function (json) {
                 var status;
                 for (var t = 0; t < json.entries.length; t++) {
