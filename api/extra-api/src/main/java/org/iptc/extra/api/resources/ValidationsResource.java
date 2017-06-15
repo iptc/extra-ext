@@ -61,7 +61,7 @@ public class ValidationsResource {
 		try {
 			
 			String query = rule.getQuery();	
-
+			
 			Map<String, Object> response = new HashMap<String, Object>();
 			response.put("es_dsl", "");	
 			response.put("tree", "");	
@@ -105,7 +105,7 @@ public class ValidationsResource {
 						}
 						else {
 							reference.setRule(refRule);
-							validateReferenceRules(reference, schema);
+							TreeUtils.validateReferenceRule(reference, schema);
 						}
 					}
 				}
@@ -153,25 +153,10 @@ public class ValidationsResource {
 			return Response.ok().entity(entity).build();
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			ErrorMessage error = new ErrorMessage(e.getMessage());
 			return Response.status(400).entity(error).build();
 		}
-	}
-	
-	private void validateReferenceRules(ReferenceClause reference, Schema schema) {
-		
-		Rule rule = reference.getRule();
-		
-		String query = rule.getQuery();	
-		
-		SyntaxTree syntaxTree = CQLExtraParser.parse(query);
-		reference.setRuleSyntaxTree(syntaxTree);
-		
-		//Node root = syntaxTree.getRootNode();
-		
-		//List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
-		//Set<String> unmatchedIndices = TreeUtils.validateSchema(root, schema);
-		//List<ReferenceClause> references = TreeUtils.getReferences(root);
 	}
 	
 	@POST @Path("{schemaid}")

@@ -23,14 +23,20 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.bson.types.ObjectId;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
+import org.iptc.extra.core.cql.tree.Node;
+import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
+import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.es.ElasticSearchClient;
+import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
+import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.utils.TextUtils;
 import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.FindOptions;
@@ -59,6 +65,12 @@ public class RulesResource {
     @Inject
     private RulesDAO dao;
     
+	@Inject
+    private CorporaDAO corporaDAO;
+
+	@Inject
+    private SchemasDAO schemasDAO;
+	
 	@Inject
 	private ElasticSearchClient es;
 	
@@ -218,21 +230,13 @@ public class RulesResource {
 				.set("updatedAt", t);
 		
 		if(newRule.getStatus() != null) {
-			if(newRule.getStatus().equals("submitted")) {
-				// TODO: Submit rule into percolate index
-				//es.submitRule(ruleid, null, "");
-			}
-			else {
-				rule.setStatus(newRule.getStatus());	
-			}
-			
+			rule.setStatus(newRule.getStatus());
 			ops.set("status", newRule.getStatus());
 		}
 		else {
 			rule.setStatus("draft");
 			ops.set("status", "draft");
 		}
-		
 		dao.update(q, ops);
 		
 		if(annotation != null) {
@@ -240,9 +244,54 @@ public class RulesResource {
 		}
 		
 		return Response.status(201).entity(rule).build();
-
 	}
 
+	@PUT @Path("{ruleid}/_submit")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response submitRule(
+			@PathParam("ruleid") String ruleid, 
+			@QueryParam("corpus") String corpusId,
+			Rule newRule) {
+		
+		Rule rule = dao.get(ruleid);
+		if(rule == null) {
+			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
+			return Response.status(404).entity(msg).build();
+		}
+		
+		try {
+			// Validate rule
+			String query = rule.getQuery();
+			
+			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+			Node root = syntaxTree.getRootNode();
+			
+			Corpus corpus = corporaDAO.get(corpusId);
+			if(corpus == null) {
+				ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+				return Response.status(400).entity(msg).build();
+			}
+			
+			Schema schema = schemasDAO.get(corpus.getSchemaId());
+			
+			QueryBuilder qb = mapper.toElasticSearch(root, schema);
+				
+			// Submit rule into percolate index
+			es.submitRule(ruleid, qb, "extra");
+			
+			Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
+			UpdateOperations<Rule> ops = dao.createUpdateOperations().set("status", "submitted");
+			dao.update(q, ops);
+			
+		} catch (Exception e) {
+			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
+			return Response.status(400).entity(msg).build();
+		}
+		
+		
+		return Response.status(201).entity(rule).build();
+	}
+	
 	@DELETE @Path("{ruleid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteRule(@PathParam("ruleid") String ruleid) {

@@ -1,6 +1,5 @@
 package org.iptc.extra.api.resources;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -21,12 +20,10 @@ import org.iptc.extra.api.responses.ErrorMessage;
 import org.iptc.extra.api.responses.PagedResponse;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
-import org.iptc.extra.core.daos.TaxonomiesDAO;
 import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.es.ElasticSearchResponse;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
-import org.iptc.extra.core.types.Taxonomy;
 import org.iptc.extra.core.types.document.Document;
 
 
@@ -39,9 +36,6 @@ public class ClassificationsResource {
 	
 	@Inject
     private SchemasDAO schemasDAO;
-
-	@Inject
-    private TaxonomiesDAO taxonomiesDAO;
 	
     @Inject
     private RulesDAO rulesDAO;
@@ -50,8 +44,7 @@ public class ClassificationsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response postDocument(Document document,
-    		@QueryParam("schema") String schemaId,
-    		@QueryParam("taxonomy") String taxonomyId,
+    		@QueryParam("schemaId") String schemaId,
     		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage,
     		@DefaultValue("1") @QueryParam("page") int page) {
 		
@@ -61,6 +54,7 @@ public class ClassificationsResource {
 			return Response.status(404).entity(msg).build();
 		}
 		
+		
 		Set<String> documentFields = document.getFieldNames();
 		Set<String> schemaFields = schema.getFieldNames();
 		if(!schemaFields.containsAll(documentFields)) {
@@ -68,16 +62,11 @@ public class ClassificationsResource {
 			ErrorMessage msg = new ErrorMessage("Document contains unknown fields: " + documentFields);
 			return Response.status(400).entity(msg).build();
 		}
-	
-		Taxonomy taxonomy = taxonomiesDAO.get(taxonomyId);
-		if(taxonomy == null) {
-			ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomyId + " does not exist");
-			return Response.status(404).entity(msg).build();
-		}
+		
 		
 		try {
 			List<Rule> rules = new ArrayList<Rule>();
-			ElasticSearchResponse<String> result = es.findRules(document, taxonomy.getId(), schema.getId(), page, nPerPage);
+			ElasticSearchResponse<String> result = es.findRules(document, "extra", page, nPerPage);
 			for(String ruleId : result.getResults()) {
 				Rule rule = rulesDAO.get(ruleId);
 				if(rule != null) {
@@ -94,10 +83,12 @@ public class ClassificationsResource {
 			GenericEntity<PagedResponse<Rule> > entity = new GenericEntity<PagedResponse<Rule> >(response) {};
 	        return Response.ok(entity).build();
 	        
-		} catch (IOException e) {
+		} catch (Exception e) {
+			e.printStackTrace();
 			ErrorMessage msg = new ErrorMessage("Classification failed!");
 			return Response.status(400).entity(msg).build();
 		}
+		
     }
 	
 }

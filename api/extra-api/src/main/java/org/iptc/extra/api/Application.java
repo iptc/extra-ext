@@ -4,6 +4,7 @@ import java.util.Properties;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.iptc.extra.api.binder.ApplicationBinder;
+import org.iptc.extra.api.databind.DocumentDeserializer;
 import org.iptc.extra.api.databind.DocumentPagedResponseSerializer;
 import org.iptc.extra.api.databind.DocumentSerializer;
 import org.iptc.extra.api.responses.DocumentPagedResponse;
@@ -33,9 +34,11 @@ public class Application extends ResourceConfig {
     	ObjectMapper mapper = new ObjectMapper();
     	
     	mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    	mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     	
     	SimpleModule module = new SimpleModule();
     	module.addSerializer(Document.class, new DocumentSerializer());
+    	module.addDeserializer(Document.class, new DocumentDeserializer());
     	module.addSerializer(DocumentPagedResponse.class, new DocumentPagedResponseSerializer());
   
     	mapper.registerModule(module);

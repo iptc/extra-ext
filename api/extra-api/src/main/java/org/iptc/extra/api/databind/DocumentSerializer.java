@@ -20,7 +20,10 @@ public class DocumentSerializer extends JsonSerializer<Document> {
 	public void serialize(Document document, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
 		gen.writeStartObject();
 		
-		gen.writeStringField("id", document.getId());
+		if(document.getId() != null) {
+			gen.writeStringField("id", document.getId());
+		}
+		
 		for(String fieldName : document.getFieldNames()) {
 			DocumentField field = document.get(fieldName);
 			if(field instanceof StructuredTextField) {
