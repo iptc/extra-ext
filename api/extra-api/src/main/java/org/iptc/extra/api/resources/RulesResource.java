@@ -275,15 +275,17 @@ public class RulesResource {
 			Schema schema = schemasDAO.get(corpus.getSchemaId());
 			
 			QueryBuilder qb = mapper.toElasticSearch(root, schema);
-				
+			
 			// Submit rule into percolate index
-			es.submitRule(ruleid, qb, "extra");
+			es.createSchemaMapping(schema);
+			es.submitRule(ruleid, qb, schema.getId());
 			
 			Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
 			UpdateOperations<Rule> ops = dao.createUpdateOperations().set("status", "submitted");
 			dao.update(q, ops);
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
 			return Response.status(400).entity(msg).build();
 		}

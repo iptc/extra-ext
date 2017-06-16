@@ -66,7 +66,7 @@ public class ClassificationsResource {
 		
 		try {
 			List<Rule> rules = new ArrayList<Rule>();
-			ElasticSearchResponse<String> result = es.findRules(document, "extra", page, nPerPage);
+			ElasticSearchResponse<String> result = es.findRules(document, schema.getId(), page, nPerPage);
 			for(String ruleId : result.getResults()) {
 				Rule rule = rulesDAO.get(ruleId);
 				if(rule != null) {
