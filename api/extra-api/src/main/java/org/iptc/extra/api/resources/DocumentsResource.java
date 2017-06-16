@@ -105,9 +105,11 @@ public class DocumentsResource {
 				response.addAnnotation(count.getKey(), count.getValue());
 			}
 			
-			QueryBuilder qb = null;
+			QueryBuilder qb = null;		// ES query
+			QueryBuilder hqb = rulesQuery;	// ES query used for highlighting
 			if(match.equals("topicMatches")) {
 				qb = getTopicQuery(topicId);
+				hqb = null;
 			}
 			else if(match.equals("bothMatches")) {
 				qb = getRulesAndTopicQuery(rulesQuery, topicId);
@@ -123,7 +125,7 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			ElasticSearchResponse<Document> results = es.findDocuments(qb, corpusName, page, nPerPage, schema);	
+			ElasticSearchResponse<Document> results = es.findDocuments(qb, corpusName, page, nPerPage, schema, hqb);	
 			response.setEntries(results.getResults());
 			
 			response.setTotal(results.getFound());
@@ -204,7 +206,7 @@ public class DocumentsResource {
 				}
 			}
 			
-			QueryBuilder qb = mapper.toElasticSearch(root, schema);
+			QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
 			return qb;
 		}
 		catch(Exception e) {

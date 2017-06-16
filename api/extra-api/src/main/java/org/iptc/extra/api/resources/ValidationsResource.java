@@ -119,7 +119,7 @@ public class ValidationsResource {
 			
 			if(root != null) {
 				if(response.get("valid").equals("true")) {
-					QueryBuilder qb = mapper.toElasticSearch(root, schema);
+					QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
 					if(qb != null) {
 						String esDSL = "{ \"query\": " + qb.toString() + "}";
 						response.put("es_dsl", esDSL);	
