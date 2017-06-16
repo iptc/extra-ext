@@ -93,6 +93,9 @@ body, html {
 .wmd-input-left {
     height: calc(100% - 53px);
 }
+.error_open {
+    height: calc(100% - 82px);
+}
 
 .wmd-container .grippie {
     width: 100%; /* fallback if needed */
@@ -235,15 +238,10 @@ body, html {
 
 .article, .rule {
     padding: 10px;
-    cursor: pointer;
     border: 1px solid #c8ccd0;
     width: 200px;
     margin: 10px;
     display: inline-block;
-}
-
-.article:hover, .rule:hover {
-    background: #eee;
 }
 
 #result_articles, #results_rules {
@@ -626,7 +624,6 @@ li.selected {
 .alert {
     padding: 5px 15px;
     border-top: 0;
-    margin-right: 43px;
     font-size: 14px;
 }
 

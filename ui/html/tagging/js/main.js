@@ -3,36 +3,27 @@ $('#search_but').click(function () {
         var obj = JSON.parse($('#wmd-input').text());
         var str = JSON.stringify(obj, undefined, 4);
         $('#wmd-input').html(syntaxHighlight(str));
-
+        $('#error_modal').slideUp();
+        $('#wmd-input').removeClass('error_open');
+        $('#result_rules').empty();
         $.ajax({
-            type: 'POST',
-            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?schemaId='+$('#schema_select').val(),
+            type: 'GET',
+            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?schemaId=' + $('#schema_select').val(),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             data: str,
             success: function (json) {
-                var status;
                 for (var t = 0; t < json.entries.length; t++) {
                     var d = new Date(json.entries[t].createdAt);
                     d = ISODateString(d);
                     var d2 = new Date(json.entries[t].updatedAt);
                     d2 = ISODateString(d2);
-                    switch (json.entries[t].status) {
-                        case "new":
-                            status = '<div class="legendcolor" style="background-color:#EE6C4D;"></div><div class="legendtext">New</div>';
-                            break;
-                        case "draft":
-                            status = '<div class="legendcolor" style="background-color:#6A8D73;"></div><div class="legendtext">Draft</div>';
-                            break;
-                        case "submitted":
-                            status = '<div class="legendcolor" style="background-color:#C7A27C;"></div><div class="legendtext">Submitted</div>';
-                            break;
-                    }
-                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="copy_rule">Copy ID</p><img class="delete_icon" src=imgs/delete.png><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul><div class="status">' + status + '</div></div>');
+                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul></div>');
                 }
                 if (json.total > 0) {
+                    $('#zero_rules').hide();
                     //$('.rule[data-id="' + $('#save_but').attr('data-id') + '"]').addClass('highlight_rule');
                     var $articles_pagination = $('#rules_pagination');
                     $('#well_rules').show();
@@ -50,7 +41,7 @@ $('#search_but').click(function () {
                         startPage: 1,
                         onPageClick: function (event, page) {
                             $('#result_rules').empty();
-                            parse_rules(page);
+                            parse_results(page);
                         }
                     });
                     var options = {
@@ -74,9 +65,60 @@ $('#search_but').click(function () {
             }
         });
     } catch (ex) {
-        alert("Error");
+        $("#error_msg").text(ex);
+        $('#error_modal').slideDown();
+        $('#wmd-input').addClass('error_open');
+        $('#well_rules').hide();
+        $('#rules_list').removeClass('open_well');
+        $('#result_rules').empty();
     }
 });
+function parse_results(page) {
+    try {
+        var obj = JSON.parse($('#wmd-input').text());
+        var str = JSON.stringify(obj, undefined, 4);
+        $('#wmd-input').html(syntaxHighlight(str));
+        $('#error_modal').slideUp();
+        $('#wmd-input').removeClass('error_open');
+        $.ajax({
+            type: 'GET',
+            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?page=' + page + 'schemaId=' + $('#schema_select').val(),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: str,
+            success: function (json) {
+                for (var t = 0; t < json.entries.length; t++) {
+                    var d = new Date(json.entries[t].createdAt);
+                    d = ISODateString(d);
+                    var d2 = new Date(json.entries[t].updatedAt);
+                    d2 = ISODateString(d2);
+                    $('#result_rules').append('<div class="rule" data-id="' + json.entries[t].id + '"><p class="title_rule">' + json.entries[t].name + '</p><p class="date_rule">Created at: <span style="font-weight: bold">' + d + '</span></p><p class="date_rule">Updated at: <span style="font-weight: bold">' + d2 + '</span></p><ul class="media_topic"><li><a href="javascript:void(0);">' + json.entries[t].topicName + '</a></li></ul></div>');
+                }
+                var options = {
+                    autoResize: true,
+                    container: $('#result_rules'),
+                    offset: 10,
+                    itemWidth: 322,
+                    outerOffset: 0
+                };
+
+                var handler = $('#result_rules > .rule');
+                handler.wookmark(options);
+            },
+            error: function (e) {
+            }
+        });
+    } catch (ex) {
+        $("#error_msg").text(ex);
+        $('#error_modal').slideDown();
+        $('#wmd-input').addClass('error_open');
+        $('#well_rules').hide();
+        $('#rules_list').removeClass('open_well');
+        $('#result_rules').empty();
+    }
+}
 $('[contenteditable]').on('focus', function () {
     var $this = $(this);
     $this.data('before', $this.html());
@@ -176,4 +218,14 @@ function syntaxHighlight(json) {
         }
         return '<span class="' + cls + '">' + match + '</span>';
     });
+}
+$('#error_close').click(function () {
+    $('#error_modal').slideUp();
+    $('#wmd-input').removeClass('error_open');
+});
+function ISODateString(d) {
+    return pad(d.getUTCMonth() + 1) + '/' + pad(d.getUTCDate()) + '/' + d.getUTCFullYear();
+}
+function pad(n) {
+    return n < 10 ? '0' + n : n
 }

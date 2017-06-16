@@ -294,7 +294,7 @@ $('#delete_but').click(function () {
     $("#delete_edit").attr('data-ref', 'rule_but');
     $("#delete_message").slideDown();
 });
-$('#save_but_annotation').click(function () {
+$('#save_but_annotation').click(function (event) {
     var viewData = {
         "query": $('#wmd-input').html(),
         "status": $('.highlight_rule').find('.legendtext').text().toLowerCase()
@@ -315,7 +315,10 @@ $('#save_but_annotation').click(function () {
             $('#annotations_input').val("");
             $('#success_modal,#error_modal').slideUp();
             $('#rule_name_save').text($('#rule_name').text());
-            $('#myModal3').reveal();
+            if (event.originalEvent === undefined) {
+            } else {
+                $('#myModal3').reveal();
+            }
             if (modal_action === 4) {
                 window.location.href = modal_action_1;
             }

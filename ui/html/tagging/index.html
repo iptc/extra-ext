@@ -50,13 +50,17 @@
                     </li>
                 </ul>
             </div>
+            <div class="alert alert-danger alert-dismissable" id="error_modal">
+                <a href="#" class="close" id="error_close">×</a>
+                <strong>Invalid! </strong><span id="error_msg"><br></span>
+            </div>
             <div contenteditable="true" placeholder="Type your document here..." id="wmd-input"
                  class="wmd-input wmd-input-left"></div>
             <div class="grippie" style="margin-right: 0"></div>
         </div>
     </div>
     <div id="rules">
-        <h2 class="background"><span>RESULTS</span></h2>
+        <h2 class="background"><span>RULES</span></h2>
         <div class="wmd-container">
             <div class="wmd-button-bar"></div>
             <div class="wmd-input" id="rules_list">
@@ -71,6 +75,7 @@
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script src="js/jquery.twbsPagination.min.js"></script>
+<script src="js/jquery.wookmark.js"></script>
 <script src="js/main.js"></script>
 
 </body>
