@@ -7,7 +7,7 @@ $('#search_but').click(function () {
         $('#wmd-input').removeClass('error_open');
         $('#result_rules').empty();
         $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?schemaId=' + $('#schema_select').val(),
             headers: {
                 'Accept': 'application/json',
@@ -81,7 +81,7 @@ function parse_results(page) {
         $('#error_modal').slideUp();
         $('#wmd-input').removeClass('error_open');
         $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?page=' + page + 'schemaId=' + $('#schema_select').val(),
             headers: {
                 'Accept': 'application/json',
