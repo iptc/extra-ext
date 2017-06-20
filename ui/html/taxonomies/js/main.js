@@ -10,8 +10,8 @@ $(function () {
         },
         async: true
     });
-    var width = 212,
-        height = 44 * 4,
+    var width = 220,
+        height = 40 * 5,
         speed = 300,
         button = $('#hamburger-icon'),
         overlay = $('#overlay'),
@@ -259,7 +259,7 @@ $('#edit_topic').click(function () {
 $("#cancel_delete").click(function () {
     $("#delete_message").slideUp();
     $('.deleted_selection').removeClass('deleted_selection');
-    $('.deleted_selection_tax').remoceClass('deleted_selection_tax');
+    $('.deleted_selection_tax').removeClass('deleted_selection_tax');
 });
 $("#delete_edit").click(function () {
     if ($(this).attr('data-ref') === "topic") {

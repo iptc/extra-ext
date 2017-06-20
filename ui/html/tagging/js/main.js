@@ -159,8 +159,8 @@ $(function () {
         },
         async: true
     });
-    var width = 212,
-        height = 44 * 4,
+    var width = 220,
+        height = 40 * 5,
         speed = 300,
         button = $('#hamburger-icon'),
         overlay = $('#overlay'),
