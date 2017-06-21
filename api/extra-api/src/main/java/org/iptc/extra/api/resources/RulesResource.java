@@ -251,6 +251,7 @@ public class RulesResource {
 	public Response submitRule(
 			@PathParam("ruleid") String ruleid, 
 			@QueryParam("corpus") String corpusId,
+			@QueryParam("corpus") String groupId,
 			Rule newRule) {
 		
 		Rule rule = dao.get(ruleid);
@@ -261,7 +262,7 @@ public class RulesResource {
 		
 		try {
 			// Validate rule
-			String query = rule.getQuery();
+			String query = newRule.getQuery();
 			
 			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
 			Node root = syntaxTree.getRootNode();
@@ -278,7 +279,7 @@ public class RulesResource {
 			
 			// Submit rule into percolate index
 			es.createSchemaMapping(schema);
-			es.submitRule(ruleid, qb, schema.getId());
+			es.submitRule(ruleid, qb, schema.getId(), groupId);
 			
 			Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
 			UpdateOperations<Rule> ops = dao.createUpdateOperations().set("status", "submitted");

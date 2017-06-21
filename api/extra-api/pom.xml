@@ -6,7 +6,7 @@
     <groupId>org.iptc</groupId>
     <artifactId>extra-api</artifactId>
     <packaging>jar</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <name>extra-api</name>
 
     <dependencyManagement>
@@ -51,7 +51,7 @@
         <dependency>
         	<groupId>org.iptc</groupId>
         	<artifactId>extra-core</artifactId>
-        	<version>0.1-SNAPSHOT</version>
+        	<version>0.1.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
