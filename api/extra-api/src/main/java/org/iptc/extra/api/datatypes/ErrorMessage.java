@@ -1,4 +1,4 @@
-package org.iptc.extra.api.responses;
+package org.iptc.extra.api.datatypes;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

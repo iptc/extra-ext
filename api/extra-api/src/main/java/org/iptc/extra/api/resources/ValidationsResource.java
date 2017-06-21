@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
 import org.elasticsearch.index.query.QueryBuilder;
-import org.iptc.extra.api.responses.ErrorMessage;
+import org.iptc.extra.api.datatypes.ErrorMessage;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
@@ -56,8 +56,7 @@ public class ValidationsResource {
 	@POST
     @Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-    public Response postRuleValidation(Rule rule,
-    		@QueryParam("corpus") String corpusId) {
+    public Response postRuleValidation(Rule rule, @QueryParam("corpus") String corpusId) {
 		try {
 			
 			String query = rule.getQuery();	
@@ -123,6 +122,9 @@ public class ValidationsResource {
 					if(qb != null) {
 						String esDSL = "{ \"query\": " + qb.toString() + "}";
 						response.put("es_dsl", esDSL);	
+					}
+					else {
+						System.out.println("ES QUERY IS NULL!!!");
 					}
 				}
 				

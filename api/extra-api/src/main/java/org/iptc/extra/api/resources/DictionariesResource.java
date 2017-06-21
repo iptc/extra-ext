@@ -17,8 +17,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.iptc.extra.api.responses.ErrorMessage;
-import org.iptc.extra.api.responses.PagedResponse;
+import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.DictionariesDAO;
 import org.iptc.extra.core.types.Dictionary;
 import org.mongodb.morphia.query.FindOptions;

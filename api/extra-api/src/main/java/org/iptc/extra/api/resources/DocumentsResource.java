@@ -24,9 +24,8 @@ import org.elasticsearch.index.query.QueryBuilder;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
-import org.iptc.extra.api.responses.DocumentPagedResponse;
-import org.iptc.extra.api.responses.ErrorMessage;
-
+import org.iptc.extra.api.datatypes.DocumentPagedResponse;
+import org.iptc.extra.api.datatypes.ErrorMessage;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;

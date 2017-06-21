@@ -16,8 +16,9 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.iptc.extra.api.responses.ErrorMessage;
-import org.iptc.extra.api.responses.PagedResponse;
+import org.iptc.extra.api.datatypes.ClassificationInput;
+import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.es.ElasticSearchClient;
@@ -43,7 +44,7 @@ public class ClassificationsResource {
 	@POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response postDocument(Document document,
+    public Response postDocument(ClassificationInput classificationInput,
     		@QueryParam("schemaId") String schemaId,
     		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage,
     		@DefaultValue("1") @QueryParam("page") int page) {
@@ -54,6 +55,7 @@ public class ClassificationsResource {
 			return Response.status(404).entity(msg).build();
 		}
 		
+		Document document = classificationInput.getDocument();
 		
 		Set<String> documentFields = document.getFieldNames();
 		Set<String> schemaFields = schema.getFieldNames();

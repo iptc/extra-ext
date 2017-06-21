@@ -1,4 +1,4 @@
-package org.iptc.extra.api.responses;
+package org.iptc.extra.api.datatypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;

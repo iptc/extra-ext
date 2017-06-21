@@ -7,7 +7,7 @@ import org.iptc.extra.api.binder.ApplicationBinder;
 import org.iptc.extra.api.databind.DocumentDeserializer;
 import org.iptc.extra.api.databind.DocumentPagedResponseSerializer;
 import org.iptc.extra.api.databind.DocumentSerializer;
-import org.iptc.extra.api.responses.DocumentPagedResponse;
+import org.iptc.extra.api.datatypes.DocumentPagedResponse;
 import org.iptc.extra.core.types.document.Document;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -18,8 +18,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.bson.types.ObjectId;
-import org.iptc.extra.api.responses.ErrorMessage;
-import org.iptc.extra.api.responses.PagedResponse;
+import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.daos.TaxonomiesDAO;

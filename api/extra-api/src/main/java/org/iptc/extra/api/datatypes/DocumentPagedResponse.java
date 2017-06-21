@@ -1,4 +1,4 @@
-package org.iptc.extra.api.responses;
+package org.iptc.extra.api.datatypes;
 
 import org.iptc.extra.core.types.document.Document;
 

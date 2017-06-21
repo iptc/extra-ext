@@ -24,8 +24,8 @@ import javax.ws.rs.core.UriInfo;
 
 import org.bson.types.ObjectId;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.iptc.extra.api.responses.ErrorMessage;
-import org.iptc.extra.api.responses.PagedResponse;
+import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.cql.CQLExtraParser;
 import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;

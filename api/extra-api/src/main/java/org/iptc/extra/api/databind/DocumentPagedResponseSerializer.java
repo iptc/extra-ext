@@ -2,7 +2,7 @@ package org.iptc.extra.api.databind;
 
 import java.io.IOException;
 
-import org.iptc.extra.api.responses.DocumentPagedResponse;
+import org.iptc.extra.api.datatypes.DocumentPagedResponse;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
