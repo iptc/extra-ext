@@ -13,7 +13,7 @@ $('#search_but').click(function () {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            data: str,
+            data: '{"document":' + str + '}',
             success: function (json) {
                 for (var t = 0; t < json.entries.length; t++) {
                     var d = new Date(json.entries[t].createdAt);
