@@ -1,5 +1,6 @@
 package org.iptc.extra.api.resources;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -206,7 +207,8 @@ public class RulesResource {
 	@PUT @Path("{ruleid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response putRule(@PathParam("ruleid") String ruleid, Rule newRule, 
-			@QueryParam("annotation") String annotation) {
+			@QueryParam("groupId") String groupId,
+			@QueryParam("schema") String schemaId) {
 
 		Rule rule = dao.get(ruleid);
 		if(rule == null) {
@@ -237,10 +239,20 @@ public class RulesResource {
 			rule.setStatus("draft");
 			ops.set("status", "draft");
 		}
+		
+		if(groupId != null) {
+			ops.addToSet("group", groupId);
+		}
 		dao.update(q, ops);
 		
-		if(annotation != null) {
-			//TODO: save annotation
+		rule = dao.get(ruleid);
+		if(rule.getStatus().equals("submitted")) {
+			try {
+				submitRule(rule, schemaId, groupId);
+			} catch (IOException e) {
+				ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
+				return Response.status(400).entity(msg).build();
+			}
 		}
 		
 		return Response.status(201).entity(rule).build();
@@ -251,7 +263,8 @@ public class RulesResource {
 	public Response submitRule(
 			@PathParam("ruleid") String ruleid, 
 			@QueryParam("corpus") String corpusId,
-			@QueryParam("corpus") String groupId,
+			@QueryParam("schema") String schemaId,
+			@QueryParam("groupId") String groupId,
 			Rule newRule) {
 		
 		Rule rule = dao.get(ruleid);
@@ -261,20 +274,23 @@ public class RulesResource {
 		}
 		
 		try {
+			if(schemaId == null || !schemasDAO.exists(schemaId)) {
+				Corpus corpus = corporaDAO.get(corpusId);
+				if(corpus == null) {
+					ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+					return Response.status(400).entity(msg).build();
+				}
+				schemaId = corpus.getSchemaId();
+			}
+			
+			Schema schema = schemasDAO.get(schemaId);
+			
 			// Validate rule
 			String query = newRule.getQuery();
 			
 			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
 			Node root = syntaxTree.getRootNode();
-			
-			Corpus corpus = corporaDAO.get(corpusId);
-			if(corpus == null) {
-				ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
-				return Response.status(400).entity(msg).build();
-			}
-			
-			Schema schema = schemasDAO.get(corpus.getSchemaId());
-			
+
 			QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
 			
 			// Submit rule into percolate index
@@ -295,6 +311,22 @@ public class RulesResource {
 		return Response.status(201).entity(rule).build();
 	}
 	
+	public void submitRule(Rule rule, String schemaId, String groupId) throws IOException {
+		// Validate rule
+		String ruleid = rule.getId();
+		String query = rule.getQuery();
+			
+		SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+		Node root = syntaxTree.getRootNode();
+			
+		Schema schema = schemasDAO.get(schemaId);	
+		QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
+			
+		// Submit rule into percolate index
+		es.createSchemaMapping(schema);
+		es.submitRule(ruleid, qb, schemaId, groupId);
+	}
+	
 	@DELETE @Path("{ruleid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteRule(@PathParam("ruleid") String ruleid) {
@@ -305,9 +337,11 @@ public class RulesResource {
 			return Response.status(404).entity(msg).build();
 		}
 
+		//es.deleteRule(rule.getId(), indexName);
+		
 		WriteResult r = dao.deleteById(ruleid);
 		if(r.getN() == 0) {
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " failed to be deleted");
+			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " failed to be deleted.");
 			return Response.status(404).entity(msg).build();
 		}
 		
