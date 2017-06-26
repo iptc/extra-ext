@@ -216,8 +216,6 @@ public class RulesResource {
 			return Response.status(404).entity(msg).build();
 		}
 		
-		Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
-		
 		String query = newRule.getQuery();
 		if(query != null) {
 			query = TextUtils.clean(query);
@@ -227,6 +225,7 @@ public class RulesResource {
 		long t = System.currentTimeMillis();
 		rule.setUpdatedAt(t);
 		
+		Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
 		UpdateOperations<Rule> ops = dao.createUpdateOperations()
 				.set("query", query)
 				.set("updatedAt", t);
@@ -246,7 +245,7 @@ public class RulesResource {
 		dao.update(q, ops);
 		
 		rule = dao.get(ruleid);
-		if(rule.getStatus().equals("submitted")) {
+		if(rule.getStatus().equals("submitted") && schemaId != null) {
 			try {
 				submitRule(rule, schemaId, groupId);
 			} catch (IOException e) {
