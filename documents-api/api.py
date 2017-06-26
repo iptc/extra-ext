@@ -74,18 +74,18 @@ class Document(Resource):
 
         # update topics subset
         if association == 'undefined':
+            # remove all
             topics = document['_source']['topics']
             for topic in topics:
                 if topic['id'] == topic_id:
                     topics.remove(topic)
-                    break
 
             body = {'doc': {'topics': topics}}
             es.update(index=corpus, doc_type='documents', id=document_id, body=body)
         elif association == 'userdefined' and exclude == 'true':
             topics = document['_source']['topics']
             for topic in topics:
-                if topic['id'] == topic_id:
+                if topic['id'] == topic_id and topic['association'] == 'userdefined':
                     topics.remove(topic)
                     break
 
@@ -300,6 +300,7 @@ class Topic(Resource):
 
         return topic
 
+    # update a document with new topics
     def put(self, topic_id):
         parser = reqparse.RequestParser()
         parser.add_argument('corpus', type=str, required=True)
@@ -325,17 +326,25 @@ class Topic(Resource):
         topics = documents['_source']['topics']
         # update topics set
         exists = False
+        excluded = False
+        ancestor = False
         for topic in topics:
             if topic['id'] == new_topic['id']:
+                if topic['exclude'] == 'true':
+                    topic['exclude'] = 'false'
+                    excluded = True
+                if topic['association'] == 'why:ancestor':
+                    ancestor = True
                 exists = True
                 break
 
-        if not exists:
-            if 'association' not in new_topic:
-                new_topic['association'] = 'userdefined'
-                new_topic['exclude'] = 'false'
+        if (not exists) or excluded or ancestor:
+            if (not exists) or ancestor:
+                if 'association' not in new_topic:
+                    new_topic['association'] = 'userdefined'
+                    new_topic['exclude'] = 'false'
+                topics.append(new_topic)
 
-            topics.append(new_topic)
             body = {'doc': {'topics': topics}}
             es.update(index=corpus, doc_type='documents', id=document_id, body=body)
             return {'msg': 'document ' + document_id + ' has been annotated with ' + new_topic['id']}
