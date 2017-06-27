@@ -24,6 +24,7 @@ services:
       transport.host: 0.0.0.0
       discovery.zen.minimum_master_nodes: 1
       cluster.name: elasticsearch
+      script.max_compilations_per_minute: 200
       xpack.security.enabled: 'false'
       xpack.monitoring.enabled: 'false'
     networks:
