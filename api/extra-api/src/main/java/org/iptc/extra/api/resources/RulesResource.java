@@ -208,7 +208,8 @@ public class RulesResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response putRule(@PathParam("ruleid") String ruleid, Rule newRule, 
 			@QueryParam("groupId") String groupId,
-			@QueryParam("schema") String schemaId) {
+			@QueryParam("schema") String schemaId,
+			@QueryParam("corpus") String corpusId) {
 
 		Rule rule = dao.get(ruleid);
 		if(rule == null) {
@@ -247,6 +248,15 @@ public class RulesResource {
 		rule = dao.get(ruleid);
 		if(rule.getStatus().equals("submitted") && schemaId != null) {
 			try {
+				if(schemaId == null || !schemasDAO.exists(schemaId)) {
+					Corpus corpus = corporaDAO.get(corpusId);
+					if(corpus == null) {
+						ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+						return Response.status(400).entity(msg).build();
+					}
+					schemaId = corpus.getSchemaId();
+				}
+				
 				submitRule(rule, schemaId, groupId);
 			} catch (IOException e) {
 				ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());

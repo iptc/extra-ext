@@ -46,6 +46,7 @@ public class ClassificationsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response postDocument(ClassificationInput classificationInput,
     		@QueryParam("schemaId") String schemaId,
+    		@QueryParam("groupId") String groupId,
     		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage,
     		@DefaultValue("1") @QueryParam("page") int page) {
 		
@@ -68,7 +69,7 @@ public class ClassificationsResource {
 		
 		try {
 			List<Rule> rules = new ArrayList<Rule>();
-			ElasticSearchResponse<String> result = es.findRules(document, schema.getId(), "1", page, nPerPage);
+			ElasticSearchResponse<String> result = es.findRules(document, schema.getId(), groupId, page, nPerPage);
 			for(String ruleId : result.getResults()) {
 				Rule rule = rulesDAO.get(ruleId);
 				if(rule != null) {
