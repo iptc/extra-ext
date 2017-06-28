@@ -143,6 +143,7 @@ $('#submit_modal').click(function () {
         },
         data: data,
         success: function () {
+            $('.close-reveal-modal').click();
             $('#json_close').click();
             unsaved_rule = false;
             $('#rule_name_sub').text($('#rule_name').text());
