@@ -394,37 +394,8 @@ body, html {
     font-weight: bold;
 }
 
-#annotations {
-    display: none;
-}
-
-.annotations_title {
-    margin: 0;
-    float: left;
-    font-size: 13px;
-}
-
-#annotations_input {
-    float: left;
-    margin-left: 8px;
-    padding: 2px 0;
-    margin-top: -1px;
-    outline: 0;
-    width: calc(100% - 146px);
-    margin-right: 10px;
-}
-
-#annotations_date {
-    margin-top: 2px;
-}
-
 #rule_buttons button {
     margin-top: 4px;
-}
-
-#save_but_annotation {
-    margin-top: -6px;
-    padding: 2px 12px;
 }
 
 #rules_list {
@@ -1222,4 +1193,79 @@ div[contenteditable=false] {
     margin: 10px 0;
     color: #3232ff;
     font-size: inherit;
+}
+
+form header {
+    margin: 0 0 20px 0;
+}
+
+form header div {
+    font-size: 90%;
+    color: #999;
+}
+
+form header h2 {
+    margin: 0 0 5px 0;
+}
+
+form > div {
+    clear: both;
+    overflow: hidden;
+    padding: 1px;
+    margin: 0 0 10px 0;
+}
+
+form > div > fieldset > div > div {
+    margin: 0 0 5px 0;
+}
+
+form > div > label {
+    float: left;
+    padding-right: 10px;
+}
+
+form > div > fieldset label {
+    font-size: 90%;
+}
+
+fieldset {
+    border: 0;
+    padding: 0;
+}
+
+input[type=text] {
+    width: 80%;
+    border: 1px solid #ccc;
+    border-right-color: #eee;
+    border-bottom-color: #eee;
+    padding: 3px;
+    -webkit-transition: border 500ms ease-out;
+    -moz-transition: border 500ms ease-out;
+    -o-transition: border 500ms ease-out;
+    transition: border 500ms ease-out;
+}
+
+.missing {
+    border-color: #a90f0a !important;
+}
+
+input[type=text]:focus {
+    outline: 0;
+    border-color: #4697e4;
+}
+#myModal4 .btn{
+    background: #3498db;
+    color: #fff;
+}
+#predefined_group p {
+    display: inline-block;
+    margin: 0 5px;
+    background: #A7BED3;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+#predefined_group p:hover{
+    background: #AAABBC;
 }

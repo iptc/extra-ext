@@ -93,6 +93,7 @@ body, html {
 .wmd-input-left {
     height: calc(100% - 53px);
 }
+
 .error_open {
     height: calc(100% - 82px);
 }
@@ -1127,19 +1128,19 @@ div[contenteditable=false] {
     font-size: inherit;
 }
 
-#schema_select:required:invalid {
+#schema_select:required:invalid, #group_select:required:invalid {
     color: gray;
 }
 
-#schema_select option[value=""][disabled] {
+#schema_select option[value=""][disabled], #group_select option[value=""][disabled] {
     display: none;
 }
 
-#schema_select option {
+#schema_select option, #group_select option {
     color: black;
 }
 
-#schema_select {
+#schema_select, #group_select {
     position: relative;
     top: 4px;
     left: 10px;

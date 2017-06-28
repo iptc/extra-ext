@@ -8,7 +8,7 @@ $('#search_but').click(function () {
         $('#result_rules').empty();
         $.ajax({
             type: 'POST',
-            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?schemaId=' + $('#schema_select').val(),
+            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?schemaId=' + $('#schema_select').val() + '&groupId=' + $('#group_select').val(),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -82,7 +82,7 @@ function parse_results(page) {
         $('#wmd-input').removeClass('error_open');
         $.ajax({
             type: 'POST',
-            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?page=' + page + 'schemaId=' + $('#schema_select').val(),
+            url: 'http://' + window.location.hostname + ':8888/extra/api/classifications?page=' + page + 'schemaId=' + $('#schema_select').val() + '&groupId=' + $('#group_select').val(),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -155,7 +155,17 @@ $(function () {
             for (var i = 0; i < json.entries.length; i++) {
                 $('#schema_select').append('<option value="' + json.entries[i].id + '">' + json.entries[i].name + '</option>');
             }
-            $('#schema_select').removeAttr('disabled');
+        },
+        async: true
+    });
+    $.ajax({
+        type: "GET",
+        url: "http://" + window.location.hostname + ":8888/extra/api/rules/groups",
+        dataType: "json",
+        success: function (json) {
+            for (var i = 0; i < json.entries.length; i++) {
+                $('#group_select').append('<option value="' + json.entries[i].id + '">' + json.entries[i].name + '</option>');
+            }
         },
         async: true
     });
