@@ -117,6 +117,8 @@ $('#submit_but').click(function () {
         data: data,
         success: function (json) {
             if (json.valid === "true") {
+                $('#new_group_name').attr('data-id', '');
+                $('#new_group_name').val('');
                 $('#myModal4').reveal();
             }
             else {
