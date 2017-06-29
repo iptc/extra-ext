@@ -32,10 +32,12 @@ import org.iptc.extra.core.cql.CQLMapper;
 import org.iptc.extra.core.cql.SyntaxTree;
 import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.daos.CorporaDAO;
+import org.iptc.extra.core.daos.GroupDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.types.Corpus;
+import org.iptc.extra.core.types.Group;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.utils.TextUtils;
@@ -65,6 +67,9 @@ public class RulesResource {
 
     @Inject
     private RulesDAO dao;
+    
+    @Inject
+    private GroupDAO groupDAO;
     
 	@Inject
     private CorporaDAO corporaDAO;
@@ -154,7 +159,7 @@ public class RulesResource {
     		rule.setUpdatedAt(t);
     		
     		String query = rule.getQuery();
-    		if(query != null) {
+    		if(query != null && query.equals("")) {
     			query = TextUtils.clean(query);
     			rule.setQuery(query);
     		}
@@ -166,6 +171,91 @@ public class RulesResource {
     	}
     }
     
+    @GET @Path("groups")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getGroups() {
+    	try {
+    		List<Group> groups = groupDAO.find().asList();
+
+			PagedResponse<Group> response = new PagedResponse<Group>();
+			response.setEntries(groups);
+		
+			return Response.status(200).entity(response).build();
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+			return Response.status(404).entity(msg).build();
+    	}
+	}
+    
+    @POST @Path("groups")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response postGroup(Group group) {
+    	try {
+    		String id = group.getId();
+        	if(id != null && groupDAO.exists(id)) {
+        		ErrorMessage msg = new ErrorMessage("Conflict. Group " + id + " already exists.");
+    			return Response.status(409).entity(msg).build();
+        	}
+        	else {
+
+        		Key<Group> createdGroupKey = groupDAO.save(group);
+        		group.setId(createdGroupKey.getId().toString());
+        		
+        		return Response.status(201).entity(group).build();
+        	}
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+			return Response.status(404).entity(msg).build();
+    	}
+	}
+    
+    @GET @Path("groups/{groupid}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getGroup(@PathParam("groupid") String groupid) {
+    	try {
+    		Group group = groupDAO.get(groupid);
+    		if(group == null) {
+    			ErrorMessage msg = new ErrorMessage("Group " + groupid + " not found");
+    			return Response.status(404).entity(msg).build();
+    		}
+
+			return Response.status(200).entity(group).build();
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+			return Response.status(404).entity(msg).build();
+    	}
+	}
+    
+    @DELETE @Path("groups/{groupid}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response deleteGroup(@PathParam("groupid") String groupid) {
+    	try {
+    		Group group = groupDAO.get(groupid);
+    		if(group == null) {
+    			ErrorMessage msg = new ErrorMessage("Group " + groupid + " not found");
+    			return Response.status(404).entity(msg).build();
+    		}
+    		
+    		WriteResult r = groupDAO.deleteById(groupid);
+    		if(r.getN() == 0) {
+    			ErrorMessage msg = new ErrorMessage("Group " + groupid + " failed to be deleted.");
+    			return Response.status(404).entity(msg).build();
+    		}
+    		
+			return Response.status(204).entity(group).build();
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+			return Response.status(404).entity(msg).build();
+    	}
+	}
     
     /**
 	 * Retrieve the rule defined by the specific rule id
@@ -184,15 +274,16 @@ public class RulesResource {
 		}
 		
 		try {
-			
-			String query = TextUtils.clean(rule.getQuery());
-			rule.setQuery(query);
-			
-			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
-			if(!syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
-				query = mapper.toString(syntaxTree.getRootNode(), "<br/>", "&emsp;");
-				if(query != null) {
-					rule.setQuery(query);
+			String query = rule.getQuery();
+			if(query != null && !query.equals("")) {
+				query = TextUtils.clean(query);
+				rule.setQuery(query);	
+				SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+				if(!syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
+					query = mapper.toString(syntaxTree.getRootNode(), "<br/>", "&emsp;");
+					if(query != null) {
+						rule.setQuery(query);
+					}
 				}
 			}
 		}
@@ -203,121 +294,112 @@ public class RulesResource {
 		return Response.status(200).entity(rule).build();
 		
 	}
-	 
+			
 	@PUT @Path("{ruleid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response putRule(@PathParam("ruleid") String ruleid, Rule newRule, 
 			@QueryParam("groupId") String groupId,
+			@QueryParam("groupName") String groupName,
 			@QueryParam("schema") String schemaId,
 			@QueryParam("corpus") String corpusId) {
 
-		Rule rule = dao.get(ruleid);
-		if(rule == null) {
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
-			return Response.status(404).entity(msg).build();
-		}
+		try { 
+			Rule rule = dao.get(ruleid);
+			if(rule == null) {
+				ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
+				return Response.status(404).entity(msg).build();
+			}
 		
-		String query = newRule.getQuery();
-		if(query != null) {
-			query = TextUtils.clean(query);
-			rule.setQuery(query);
-		}
+			String query = newRule.getQuery();
+			if(query != null) {
+				query = TextUtils.clean(query);
+				rule.setQuery(query);
+			}
 		
-		long t = System.currentTimeMillis();
-		rule.setUpdatedAt(t);
+			long t = System.currentTimeMillis();
+			rule.setUpdatedAt(t);
 		
-		Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
-		UpdateOperations<Rule> ops = dao.createUpdateOperations()
+			Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
+			UpdateOperations<Rule> ops = dao.createUpdateOperations()
 				.set("query", query)
 				.set("updatedAt", t);
 		
-		if(newRule.getStatus() != null) {
-			rule.setStatus(newRule.getStatus());
-			ops.set("status", newRule.getStatus());
-		}
-		else {
-			rule.setStatus("draft");
-			ops.set("status", "draft");
-		}
-		
-		if(groupId != null) {
-			ops.addToSet("group", groupId);
-		}
-		dao.update(q, ops);
-		
-		rule = dao.get(ruleid);
-		if(rule.getStatus().equals("submitted") && schemaId != null) {
-			try {
-				if(schemaId == null || !schemasDAO.exists(schemaId)) {
-					Corpus corpus = corporaDAO.get(corpusId);
-					if(corpus == null) {
-						ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
-						return Response.status(400).entity(msg).build();
-					}
-					schemaId = corpus.getSchemaId();
-				}
-				
-				submitRule(rule, schemaId, groupId);
-			} catch (IOException e) {
-				ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
-				return Response.status(400).entity(msg).build();
+			if(newRule.getStatus() == null || (newRule.getStatus() != null && newRule.getStatus().equals("new"))) {
+				rule.setStatus("draft");
+				ops.set("status", "draft");
 			}
-		}
+			else {
+				if(!newRule.getStatus().equals("submitted")) {
+					rule.setStatus(newRule.getStatus());
+					ops.set("status", newRule.getStatus());
+				}
+			}
 		
-		return Response.status(201).entity(rule).build();
-	}
+			// create group and add a reference in the rule
+			if(groupId != null && groupName != null) {
+				try {
+					Group group = null;
+					if(groupId.equals("")) {
+						if(!groupName.equals("")) {
+							group = groupDAO.findOne(groupDAO.createQuery().filter("name", groupName));
+							if(group == null) {
+								group = new Group();
+								group.setName(groupName);
+								Key<Group> r = groupDAO.save(group);
+								groupId = r.getId().toString();
+								group.setId(groupId);
+							}
+						}
+					}
+					else {
+						group = groupDAO.get(groupId);
+						if(group == null && !groupName.equals("")) {
+							group = new Group(groupId, groupName);
+						}
+					}
+			
+					if(group != null) {
+						ops.addToSet("group", groupId);
+					}
+				}
+				catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
 
-	@PUT @Path("{ruleid}/_submit")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response submitRule(
-			@PathParam("ruleid") String ruleid, 
-			@QueryParam("corpus") String corpusId,
-			@QueryParam("schema") String schemaId,
-			@QueryParam("groupId") String groupId,
-			Rule newRule) {
+			dao.update(q, ops);
 		
-		Rule rule = dao.get(ruleid);
-		if(rule == null) {
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
-			return Response.status(404).entity(msg).build();
-		}
 		
-		try {
-			if(schemaId == null || !schemasDAO.exists(schemaId)) {
-				Corpus corpus = corporaDAO.get(corpusId);
-				if(corpus == null) {
-					ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+			rule = dao.get(ruleid);
+			if(newRule.getStatus().equals("submitted") && (schemaId != null || corpusId != null)) {
+				try {
+					if(schemaId == null || !schemasDAO.exists(schemaId)) {
+						Corpus corpus = corporaDAO.get(corpusId);
+						if(corpus == null) {
+							ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+							return Response.status(400).entity(msg).build();
+						}
+						schemaId = corpus.getSchemaId();
+					}
+				
+					submitRule(rule, schemaId, groupId);
+				
+					ops = dao.createUpdateOperations().set("status", "submitted");
+					dao.update(q, ops);
+				
+				} catch (IOException e) {
+					ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
 					return Response.status(400).entity(msg).build();
 				}
-				schemaId = corpus.getSchemaId();
 			}
-			
-			Schema schema = schemasDAO.get(schemaId);
-			
-			// Validate rule
-			String query = newRule.getQuery();
-			
-			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
-			Node root = syntaxTree.getRootNode();
-
-			QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
-			
-			// Submit rule into percolate index
-			es.createSchemaMapping(schema);
-			es.submitRule(ruleid, qb, schema.getId(), groupId);
-			
-			Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
-			UpdateOperations<Rule> ops = dao.createUpdateOperations().set("status", "submitted");
-			dao.update(q, ops);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
-			return Response.status(400).entity(msg).build();
+		
+			return Response.status(201).entity(rule).build();
 		}
-		
-		
-		return Response.status(201).entity(rule).build();
+		catch(Exception e) {
+			e.printStackTrace();
+			ErrorMessage msg = new ErrorMessage("Excpetion " + e.getMessage());
+			return Response.status(404).entity(msg).build();
+		}
 	}
 	
 	public void submitRule(Rule rule, String schemaId, String groupId) throws IOException {
@@ -346,7 +428,16 @@ public class RulesResource {
 			return Response.status(404).entity(msg).build();
 		}
 
-		//es.deleteRule(rule.getId(), indexName);
+		if(rule.getStatus() != null && rule.getStatus().equals("submitted")) {
+			for(Schema schema : schemasDAO.find().asList()) {
+				try {
+					es.deleteRule(rule.getId(), schema.getId());
+				} catch (IOException e) {
+					ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " failed to be deleted from percolate index");
+					return Response.status(404).entity(msg).build();
+				}	
+			}
+		}
 		
 		WriteResult r = dao.deleteById(ruleid);
 		if(r.getN() == 0) {

@@ -9,6 +9,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.iptc.extra.api.ApplicationProperties;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.DictionariesDAO;
+import org.iptc.extra.core.daos.GroupDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.daos.TaxonomiesDAO;
@@ -55,6 +56,9 @@ public class ApplicationBinder extends AbstractBinder {
         	
         	RulesDAO rulesDAO = new RulesDAO(datastore);
         	bind(rulesDAO).to(RulesDAO.class);
+        	
+        	GroupDAO groupDAO = new GroupDAO(datastore);
+        	bind(groupDAO).to(GroupDAO.class);
         	
         	SchemasDAO schemasDAO = new SchemasDAO(datastore);
         	bind(schemasDAO).to(SchemasDAO.class);
