@@ -145,6 +145,18 @@ $('#submit_modal').click(function () {
         },
         data: data,
         success: function () {
+            $.ajax({
+                type: "GET",
+                url: "http://" + window.location.hostname + ":8888/extra/api/rules/groups",
+                dataType: "json",
+                success: function (json) {
+                    $('#predefined_group').empty();
+                    for (var i = 0; i < json.entries.length; i++) {
+                        $('#predefined_group').append('<p id="' + json.entries[i].id + '">' + json.entries[i].name + '</p>');
+                    }
+                },
+                async: true
+            });
             $('.close-reveal-modal').click();
             $('#json_close').click();
             unsaved_rule = false;
