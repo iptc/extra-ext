@@ -92,7 +92,8 @@ public class RulesResource {
     		@QueryParam("uid") String uid,
     		@QueryParam("status") String status,
     		@QueryParam("taxonomy") String taxonomy,
-    		@QueryParam("topicId") String topic,
+    		@QueryParam("topicId") String topicId,
+    		@QueryParam("groupId") String groupId,
     		@QueryParam("q") String q,
     		@DefaultValue("1") @QueryParam("page") int page,
     		@DefaultValue("20") @QueryParam("nPerPage") int nPerPage) {
@@ -111,8 +112,12 @@ public class RulesResource {
     		query = query.field("taxonomy").equal(taxonomy);
     	}
     	
-    	if(topic != null && !topic.equals("")) {
-    		query = query.field("topicId").equal(topic);
+    	if(topicId != null && !topicId.equals("")) {
+    		query = query.field("topicId").equal(topicId);
+    	}
+    	
+    	if(groupId != null && !groupId.equals("")) {
+    		query = query.field("group").contains(groupId);
     	}
     	
     	if(q != null && !q.equals("")) {
@@ -320,18 +325,26 @@ public class RulesResource {
 			rule.setUpdatedAt(t);
 		
 			Query<Rule> q = dao.createQuery().filter("_id", new ObjectId(ruleid));
-			UpdateOperations<Rule> ops = dao.createUpdateOperations()
-				.set("query", query)
-				.set("updatedAt", t);
+			UpdateOperations<Rule> ops = dao.createUpdateOperations().set("updatedAt", t);
+			
+			if(query != null) {
+				ops.set("query", query);
+			}	
 		
-			if(newRule.getStatus() == null || (newRule.getStatus() != null && newRule.getStatus().equals("new"))) {
+			String name = newRule.getName();
+			if(name != null && !name.equals(rule.getName())) {
+				ops.set("name", name);
+			}
+			
+			String newStatus = newRule.getStatus();
+			if(newStatus == null || (newStatus != null && newStatus.equals("new"))) {
 				rule.setStatus("draft");
 				ops.set("status", "draft");
 			}
 			else {
-				if(!newRule.getStatus().equals("submitted")) {
-					rule.setStatus(newRule.getStatus());
-					ops.set("status", newRule.getStatus());
+				if(!newStatus.equals("submitted")) {
+					rule.setStatus(newStatus);
+					ops.set("status", newStatus);
 				}
 			}
 		
@@ -366,12 +379,10 @@ public class RulesResource {
 					e.printStackTrace();
 				}
 			}
-
 			dao.update(q, ops);
-		
-		
+
 			rule = dao.get(ruleid);
-			if(newRule.getStatus().equals("submitted") && (schemaId != null || corpusId != null)) {
+			if(newStatus != null && newStatus.equals("submitted") && (schemaId != null || corpusId != null)) {
 				try {
 					if(schemaId == null || !schemasDAO.exists(schemaId)) {
 						Corpus corpus = corporaDAO.get(corpusId);
@@ -381,10 +392,17 @@ public class RulesResource {
 						}
 						schemaId = corpus.getSchemaId();
 					}
-				
+					
 					submitRule(rule, schemaId, groupId);
 				
-					ops = dao.createUpdateOperations().set("status", "submitted");
+					long submittedAt = System.currentTimeMillis();
+					rule.setSubmittedAt(submittedAt);
+					
+					ops = dao.createUpdateOperations()
+							.set("status", "submitted")
+							.set("submittedAt",submittedAt)
+							.addToSet("schemas", schemaId);
+					
 					dao.update(q, ops);
 				
 				} catch (IOException e) {
@@ -392,7 +410,19 @@ public class RulesResource {
 					return Response.status(400).entity(msg).build();
 				}
 			}
-		
+			else if(rule.getStatus() != null && rule.getStatus().equals("submitted")) {
+				for(String schema : rule.getSchemas()) {
+					if(rule.getGroup().isEmpty()) {
+						submitRule(rule, schema, groupId);
+					}
+					else {
+						for(String group : rule.getGroup()) {
+							submitRule(rule, schema, group);
+						}
+					}
+				}
+			}
+			
 			return Response.status(201).entity(rule).build();
 		}
 		catch(Exception e) {
@@ -402,7 +432,7 @@ public class RulesResource {
 		}
 	}
 	
-	public void submitRule(Rule rule, String schemaId, String groupId) throws IOException {
+	private void submitRule(Rule rule, String schemaId, String groupId) throws IOException {
 		// Validate rule
 		String ruleid = rule.getId();
 		String query = rule.getQuery();
