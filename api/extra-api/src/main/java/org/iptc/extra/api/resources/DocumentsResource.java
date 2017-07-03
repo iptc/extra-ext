@@ -26,15 +26,15 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 
 import org.iptc.extra.api.datatypes.DocumentPagedResponse;
 import org.iptc.extra.api.datatypes.ErrorMessage;
-import org.iptc.extra.core.cql.CQLExtraParser;
-import org.iptc.extra.core.cql.CQLMapper;
-import org.iptc.extra.core.cql.SyntaxTree;
-import org.iptc.extra.core.cql.tree.Node;
-import org.iptc.extra.core.cql.tree.ReferenceClause;
-import org.iptc.extra.core.cql.tree.utils.TreeUtils;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.eql.EQLMapper;
+import org.iptc.extra.core.eql.EQLParser;
+import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.nodes.Node;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.utils.TreeUtils;
 import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.es.ElasticSearchResponse;
 import org.iptc.extra.core.types.Corpus;
@@ -62,7 +62,7 @@ public class DocumentsResource {
 	@Inject
     private SchemasDAO schemasDAO;
 	
-	private CQLMapper mapper = new CQLMapper();
+	private EQLMapper mapper = new EQLMapper();
 	
 	@POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -105,7 +105,7 @@ public class DocumentsResource {
 			}
 			
 			QueryBuilder qb = null;		// ES query
-			QueryBuilder hqb = rulesQuery;	// ES query used for highlighting
+			QueryBuilder hqb = getHighlightQuery(rule, schema);		// ES query used for highlighting
 			if(match.equals("topicMatches")) {
 				qb = getTopicQuery(topicId);
 				hqb = null;
@@ -118,9 +118,10 @@ public class DocumentsResource {
 			}
 			else if(match.equals("topicOnlyMatches")) {
 				qb = getTopicOnlyQuery(rulesQuery, topicId);
+				hqb = null;
 			}
 			else {
-				// rule matches - default option 
+				// rule matches - default option
 				qb = rulesQuery;
 			}
 			
@@ -185,7 +186,7 @@ public class DocumentsResource {
 			// parse rule 
 			String cql = rule.getQuery();
 			cql = TextUtils.clean(rule.getQuery());	
-			SyntaxTree syntaxTree = CQLExtraParser.parse(cql);
+			SyntaxTree syntaxTree = EQLParser.parse(cql);
 			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
 				return null;
 			}
@@ -200,13 +201,33 @@ public class DocumentsResource {
 						reference.setRule(refRule);
 						
 						String query = refRule.getQuery();	
-						reference.setRuleSyntaxTree(CQLExtraParser.parse(query));
+						reference.setRuleSyntaxTree(EQLParser.parse(query));
 					}
 				}
 			}
 			
 			QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
 			return qb;
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
+	
+	private QueryBuilder getHighlightQuery(Rule rule, Schema  schema) {
+		try {
+			// parse rule 
+			String cql = rule.getQuery();
+			cql = TextUtils.clean(rule.getQuery());	
+			SyntaxTree syntaxTree = EQLParser.parse(cql);
+			if(syntaxTree.hasErrors() || syntaxTree.getRootNode() == null) {
+				return null;
+			}
+						
+			Node root = syntaxTree.getRootNode();
+			
+			QueryBuilder hqb = mapper.toElasticSearchHighlight(root, schema);
+			return hqb;
 		}
 		catch(Exception e) {
 			return null;

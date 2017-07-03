@@ -27,14 +27,14 @@ import org.bson.types.ObjectId;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.api.datatypes.ErrorMessage;
 import org.iptc.extra.api.datatypes.PagedResponse;
-import org.iptc.extra.core.cql.CQLExtraParser;
-import org.iptc.extra.core.cql.CQLMapper;
-import org.iptc.extra.core.cql.SyntaxTree;
-import org.iptc.extra.core.cql.tree.Node;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.GroupDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.eql.EQLMapper;
+import org.iptc.extra.core.eql.EQLParser;
+import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.nodes.Node;
 import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Group;
@@ -80,7 +80,7 @@ public class RulesResource {
 	@Inject
 	private ElasticSearchClient es;
 	
-    private CQLMapper mapper = new CQLMapper();
+    private EQLMapper mapper = new EQLMapper();
     
     /**
      * Get a collection of rules based on filtering criteria like user, status and category
@@ -283,7 +283,7 @@ public class RulesResource {
 			if(query != null && !query.equals("")) {
 				query = TextUtils.clean(query);
 				rule.setQuery(query);	
-				SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+				SyntaxTree syntaxTree = EQLParser.parse(query);
 				if(!syntaxTree.hasErrors() && syntaxTree.getRootNode() != null) {
 					query = mapper.toString(syntaxTree.getRootNode(), "<br/>", "&emsp;");
 					if(query != null) {
@@ -437,7 +437,7 @@ public class RulesResource {
 		String ruleid = rule.getId();
 		String query = rule.getQuery();
 			
-		SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+		SyntaxTree syntaxTree = EQLParser.parse(query);
 		Node root = syntaxTree.getRootNode();
 			
 		Schema schema = schemasDAO.get(schemaId);	

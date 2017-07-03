@@ -21,17 +21,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.elasticsearch.index.query.QueryBuilder;
 import org.iptc.extra.api.datatypes.ErrorMessage;
-import org.iptc.extra.core.cql.CQLExtraParser;
-import org.iptc.extra.core.cql.CQLMapper;
-import org.iptc.extra.core.cql.SyntaxTree;
-import org.iptc.extra.core.cql.tree.ErrorMessageNode;
-import org.iptc.extra.core.cql.tree.Node;
-import org.iptc.extra.core.cql.tree.ReferenceClause;
-import org.iptc.extra.core.cql.tree.utils.TreeUtils;
-import org.iptc.extra.core.cql.tree.visitor.ExtraValidator;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.eql.EQLMapper;
+import org.iptc.extra.core.eql.EQLParser;
+import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.nodes.ErrorMessageNode;
+import org.iptc.extra.core.eql.tree.nodes.Node;
+import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
+import org.iptc.extra.core.eql.tree.utils.TreeUtils;
+import org.iptc.extra.core.eql.tree.visitor.EQLValidator;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
@@ -42,7 +42,7 @@ import org.iptc.extra.core.utils.TextUtils;
 @Path("validations")
 public class ValidationsResource {
 	
-	private CQLMapper mapper = new CQLMapper();
+	private EQLMapper mapper = new EQLMapper();
 	
 	@Inject
     private RulesDAO rulesDAO;
@@ -70,7 +70,7 @@ public class ValidationsResource {
 			query = TextUtils.clean(query);
 			rule.setQuery(query);
 			
-			SyntaxTree syntaxTree = CQLExtraParser.parse(query);
+			SyntaxTree syntaxTree = EQLParser.parse(query);
 			Node root = syntaxTree.getRootNode();
 			
 			StringBuffer message = new StringBuffer();
@@ -83,7 +83,7 @@ public class ValidationsResource {
 				message.append(StringUtils.join(syntaxTree.getErrors(), "</br>"));
 			}
 			else {		
-				List<ErrorMessageNode> invalidNodes = ExtraValidator.validate(root, schema);
+				List<ErrorMessageNode> invalidNodes = EQLValidator.validate(root, schema);
 				if(invalidNodes.isEmpty()) {
 					response.put("valid", "true");
 				}
