@@ -26,7 +26,7 @@ import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.eql.EQLMapper;
 import org.iptc.extra.core.eql.EQLParser;
-import org.iptc.extra.core.eql.SyntaxTree;
+import org.iptc.extra.core.eql.tree.SyntaxTree;
 import org.iptc.extra.core.eql.tree.nodes.ErrorMessageNode;
 import org.iptc.extra.core.eql.tree.nodes.Node;
 import org.iptc.extra.core.eql.tree.nodes.ReferenceClause;
