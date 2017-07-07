@@ -21,8 +21,8 @@ To configure the platform for development, [docker-compose file (https://github.
 
 There are three points need to be revised to be able to deploy EXTRA platform. 
 
-MongoDB
--------
+### MongoDB
+
 
 First off all, you have to specify data volume of mongodb to ensure data persistence. The directory /data/db inside the container that runs mongodb has to be mounted in a directory on the host machine's local filesystem. To define local directory change *<path to local mongodb data directory>* in the below section.
 
@@ -33,8 +33,8 @@ mongodb:
         - <path to local mongodb data directory>:/data/db
 ```
 
-Elastic Search
---------------
+### Elastic Search
+
 
 In the same way the directory to which elastic search keeps its indexes have to be specified. 
 
@@ -47,6 +47,14 @@ elasticsearch:
     volumes:
       - <path to local elasticsearch data directory>:/usr/share/elasticsearch/data
 ```
+
+Make sure that user that execute tha docker images has r/w rights to the elastic search data directory. The easiest way is to give full access:
+
+```sh
+$chmod 777 -R <path to local elasticsearch data directory>
+```
+** important ** The *vm_max_map_count* kernel setting needs to be set to at least *262144* for production use.
+To apply the setting on a live system type: `sysctl -w vm.max_map_count=262144`
 
 
 ## Deployment
