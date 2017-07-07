@@ -53,8 +53,23 @@ Make sure that user that execute tha docker images has r/w rights to the elastic
 ```sh
 $chmod 777 -R <path to local elasticsearch data directory>
 ```
-** important ** The *vm_max_map_count* kernel setting needs to be set to at least *262144* for production use.
+**important** The *vm_max_map_count* kernel setting needs to be set to at least *262144* for production use.
 To apply the setting on a live system type: `sysctl -w vm.max_map_count=262144`
+
+By default, the services will expose the following default ports:
+* **elastic search** -> *9200*, *9300*
+* **documents-api** -> *5000*
+* **api** -> *8888*
+* **ui** -> *80*
+
+To change the default ports, edit the correspondign section in docker-compose.yaml file. For example to change the
+port *8888* used by EXTRA API to another port e.g. *9999*, edit the file as follows: 
+
+```yaml
+api:
+    ports:
+      - 9999:8888
+```
 
 
 ## Deployment
@@ -67,13 +82,6 @@ $ docker-compose up -d
 ```
 
 This will create or download images and pull in the necessary dependencies for each service. Once done, it runs the Docker and map the ports to whatever is specified in the [docker-compose.yml](https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) file.
-
-By default, the services will expose the following default ports:
-* **elastic search** -> *9200*, *9300*
-* **documents-api** -> *5000*
-* **api** -> *8888*
-* **ui** -> *80*
-
 
 Verify the deployment by typing:
 
