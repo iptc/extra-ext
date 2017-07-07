@@ -14,7 +14,42 @@ The architecture of EXTRA platform is depicted in the following figure. All the 
 
 ![EXTRA platform architecture](extra_platform_arch.png)
 
-## Deployment 
+
+## Configuration 
+
+To configure the platform for development, [docker-compose file (https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) must be edited. 
+
+There are three points need to be revised to be able to deploy EXTRA platform. 
+
+MongoDB
+-------
+
+First off all, you have to specify data volume of mongodb to ensure data persistence. The directory /data/db inside the container that runs mongodb has to be mounted in a directory on the host machine's local filesystem. To define local directory change *<path to local mongodb data directory>* in the below section.
+
+```yaml
+mongodb:
+    image: mongo:3.2.11
+    volumes:
+        - <path to local mongodb data directory>:/data/db
+```
+
+Elastic Search
+--------------
+
+In the same way the directory to which elastic search keeps its indexes have to be specified. 
+
+```yaml
+elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.0
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - <path to local elasticsearch data directory>:/usr/share/elasticsearch/data
+```
+
+
+## Deployment
 
 To start EXTRA platform:
 
@@ -25,7 +60,32 @@ $ docker-compose up -d
 
 This will create or download images and pull in the necessary dependencies for each service. Once done, it runs the Docker and map the ports to whatever is specified in the [docker-compose.yml](https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) file.
 
-See the other repositories of the IPTC EXTRA project:
+By default, the services will expose the following default ports:
+* **elastic search** -> *9200*, *9300*
+* **documents-api** -> *5000*
+* **api** -> *8888*
+* **ui** -> *80*
 
-* https://github.com/iptc/extra-core
-* https://github.com/iptc/extra-rules
+
+Verify the deployment by typing:
+
+```sh
+$ docker ps
+```
+There should be 5 running containers.
+
+To stop the running platform:
+
+```sh
+$ cd extra
+$ docker-compose down
+```
+
+## Contact for further details about the project
+
+Manos Schinas (manosetro@iti.gr), Symeon Papadopoulos (papadop@iti.gr)
+
+## See the other repositories of the IPTC EXTRA project:
+
+* [extra-core](https://github.com/iptc/extra-core) - Core implementation of EXTRA
+* [extra-rules](https://github.com/iptc/extra-rules) - Two sets of rules developed by EXTRA project
