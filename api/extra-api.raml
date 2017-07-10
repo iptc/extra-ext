@@ -1,0 +1,651 @@
+#%RAML 1.0
+title: Extra Rule Engine
+version: v0.1
+mediaType:  application/json
+types:
+  Rule:
+    type: object
+    properties:
+      id:
+        required: true
+        type: string
+        description: The unique identifier of the rule
+      query:
+        required: true
+        type: string
+        description: The query represent the actual rule, expressed in Extra Rule Language
+      uid:
+        required: true
+        type: string
+        description: The id of the user that created the rule
+      status:
+        required: false
+        type: string
+        description: The status of the rule during editing
+        example: "editable"
+  Schema:
+    type: object
+    properties:
+      name: 
+        required: true
+        type: string
+        description: The name of the schema, used as a unique identifier
+      fields: 
+        required: true
+        type: string[]
+        description: The set of fields associated with that schema
+  Document:
+    type: object
+    properties:
+      id: 
+        required: true
+        type: string
+      schema:
+        required: false
+        type: Schema
+        description: The schema associated with tha document
+  Dictionary:
+    type: object
+    properties:
+      id:
+        required: true
+        type: string
+        description: A unique identifier of the dictionary
+      language:
+        required: false
+        type: string
+        description: The language of this dictionary
+      terms:
+        required: true
+        type: string[]
+        description: The set of words appear in this dictionary
+  RelevanceAlgorithm:
+    type: object
+    properties:
+      id: 
+        required: true
+        type: string
+        description: A unique identifier of the specific relevance algorithm
+      name:
+        required: false
+        type: string
+        description: A human-readbale name for relevance algorithm
+        example: FrequencyByWordCount
+      algorithm:
+        required: false
+        type: string
+        description: A representation of the algorithm in a way that will be defined later
+      ruleids:
+        required: false
+        type: string[]
+        description: A set of rule ids that this algorith is a rule-specific algorithm 
+traits:
+  pageable:
+      usage: Apply this to any method that needs pagination
+      queryParameters:
+        page:
+          displayName: Page Number
+          type: integer
+          description: Page number of the collection
+          example: 1
+          default: 1
+          required: false
+        numPerPage:
+          displayName: Number of items per page
+          type: integer
+          example: 50
+          default: 20
+          maximum: 100
+          required: false
+  secured:
+    usage: Apply this to any method that needs to be secured
+    description: Some requests require authentication.
+    headers:
+      access_token:
+        description: Access Token
+        example: ZcasyL9wNb-ztVRauPEtguEfWuJnfHDXDEWVhWaaS
+        required: true
+    responses: 
+      401:
+        description: This code returned in case of unauthorized access
+        body:
+          application/json:
+            example: |
+              {"message":"Invalid access token"}
+            
+/rules:
+  description: A collection of rules
+  is: secured
+  get:
+    is: pageable
+    description: Get a collection of rules based on fitlering criteria like user, status and category
+    queryParameters:
+      uid:
+        displayName: User ID
+        type: string
+        description: The id of the logged in user. Retrieve rules created by this user.
+        example: 1546058f-5a25-4334-85ae-e68f2a44bbaf
+        required: true
+      status:
+        displayName: Rule Status
+        type: string
+        description: Retrieve rules having the status specified by this parameter. 
+        example: "finished"
+        required: false
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [ 
+                {
+                  "id" : "1",
+                  "uid" : "1546058f-5a25-4334-85ae-e68f2a44bbaf",
+                  "query" : "title:(donald trump AND us elections) OR (jim mattis AND defense)",
+                  "status": "editable"
+                },
+                {
+                  "id" : "2",
+                  "uid" : "1546058f-5a25-4334-85ae-e68f2a44bbaf",
+                  "query" : "title:(us elections) AND body:(barack obama)"
+                }
+              ]
+            type: Rule[]
+  post:
+    description: Create a new rule as defined in the body of the method 
+    body:
+      application/json:
+        type: Rule
+    responses:
+      201:
+        headers: 
+          Location:
+            example: /rules/1
+        body:
+          application/json:
+            type:
+             properties:
+               message: string
+               rule: Rule
+            example: |
+              {
+                "message": "Rule created successfully",
+                "rule": {
+                  "id" : "1",
+                  "uid" : "1546058f-5a25-4334-85ae-e68f2a44bbaf",
+                  "query" : "title:(donald trump AND us elections) OR (jim mattis AND defense)"
+                }  
+              }
+      400:
+        body:
+          application/json:
+            example: |
+              {"message":"Cannot create the rule"}
+      409:
+          body: 
+            application/json:
+              example: |
+                {"message":"Conflict. Rule with id=1 already exists"}
+  /{ruleid}:
+    is: secured
+    description: A specific rule, a member of the rules collection
+    uriParameters:
+      ruleid:
+        type: string
+    get:
+      description: Retrieve the rule defined by the specific ruleid
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "id" : "1",
+                  "uid" : "1546058f-5a25-4334-85ae-e68f2a44bbaf",
+                  "query" : "title:(barack obama)"
+                }
+              type: Rule
+        404:
+          body:
+            application/json:
+              type:
+                properties:
+                 message: string
+              example: |
+                {
+                  "message": "Rule not found"
+                }
+    put:
+      description: Update the rule defined by the specific ruleid or insert if the rule does not exist
+      body:
+        application/json:
+          type: Rule
+      responses:
+        201:
+          body: 
+            application/json:
+              type:
+                properties:
+                 message: string
+                 rule: Rule
+              example: |
+                {
+                  "message": "Rule updated successfully",
+                  "rule": {
+                    "id" : "1",
+                    "uid" : "1546058f-5a25-4334-85ae-e68f2a44bbaf",
+                    "query" : "title:(barack obama)",
+                    "topics": [
+                      {
+                        "id":"medtop:11000000",
+                        "name": "politics"
+                      }
+                    ]
+                  }
+                }
+        404:
+          body:
+            application/json:
+              example: |
+                {"message": "Rule failed to be updated"}
+    delete:
+      description: Delete the rule defined by ruleid={ruleid}
+      responses:
+        204:
+          body:
+            application/json:
+              type: 
+                properties:
+                  message: string
+              example: |
+                {"message":"Rule deleted"}
+        404:
+          body:
+            application/json:
+              type:
+                properties:
+                 message: string
+              example: |
+                {"message": "Rule {ruleid} not found"}
+/classifications:
+  description: A collection of classification rules given a specific document
+  is: secured
+  post:
+    body:
+      application/json:
+        type: 
+          properties:
+            document: Document
+            matches: 
+              type: object[]
+              description: A set of rule IDs for classification
+              required: false
+            paramters:
+              type: object
+              description: A set of rule modification parameters
+              required: false
+        example: |
+          {
+            "document": {
+              "id" : "g1DWjQm2MXFqzdfWr8ka",
+              "title" : "this is a test document",
+              "body" : "this is the text body of the document"
+            },
+            "matches": [
+              {"ruleid": "1"},
+              {"ruleid": "1234"}
+            ],
+            "parameters": {
+              "minimum_occurrence": ".25",
+              "relevance algorithm": "relalg123",
+              "highlight": false
+            }
+          }
+    responses:
+      201:
+        body: 
+          application/json:
+            type:
+                properties:
+                 found: integer
+                 matches: object[]
+            example: |
+              {
+                "found": 2,
+                "matches": [
+                  {
+                    "ruleid" : "1234",
+                    "relevance": 0.9
+                  },
+                  {
+                    "ruleid" : "456",
+                    "relevance": 0.75
+                  }
+                ]
+              }
+      400:
+        body:
+          application/json:
+            example: |
+              {"message":"Classification failed."}
+            
+/validations:
+  is: secured
+  post:
+    description: Validate a rule or document against a schema (if not specified validation is performed against all schemas)
+    body:
+      application/json: 
+        type: 
+          properties:
+            rule: 
+              type: Rule
+              required: false
+            document: 
+              type: Document
+              required: false
+            schemas:
+              type: string[]
+              required: false
+    responses:
+      200:
+        body:
+          application/json: 
+            type:
+              properties:
+                valid: boolean
+                schemas: string[]
+                invalidFields: string[]
+            examples: 
+              valid:
+                {
+                  "valid": true,
+                  "schemas": [
+                    "1", "45", "109"
+                  ],
+                  "invalidFields": [] 
+                }
+              invalid:
+                {
+                  "valid": false,
+                  "schemas": [],
+                  "invalidFields": [
+                    "_Headline", "_tmac"
+                  ] 
+                }
+      400:
+        body:
+          application/json: 
+            type:
+              properties:
+                message: string   
+            example: | 
+              {"message":"Invalid input. Exactly one rule or one document must be specified."}
+/schemas:
+  description: A collection of schemas
+  is: secured
+  get:
+    description: Get a list of schemas
+    is: pageable
+    responses: 
+      200:
+        body:
+          application/json:
+            type: Schema[]
+  post:
+    description: Create a new schema
+    body: 
+      application/json:
+        type: Schema
+    responses: 
+      201:
+        body: 
+          application/json:
+            type: Schema
+      400:
+        body: 
+          application/json:
+            example: |
+              {"message":"Schema failed to be saved"}
+      409:
+        body: 
+          application/json:
+            example: |
+              {"message":"Conflict. Schema already exists"}
+            
+  /{schemaid}:
+    is: secured
+    uriParameters:
+      schemaid:
+        type: string
+    get:
+      description: Get a schema having schemaid={schemaid}
+      responses:
+        200:
+          body:
+            application/json:
+              type: Schema
+              example: |
+                {
+                  "name": "reuters",
+                  "fields": ["title", "body"]
+                }
+        404:
+          body:
+            application/json:
+              type:
+                properties:
+                 message: string
+              example: |
+                {"message" : "Schema not found"}
+    put:
+      description: Update schema having schemaid={schemaid}
+      body:
+        application/json:
+          type: Schema
+      responses:
+        200:
+          body:
+            application/json:
+              type: 
+                properties:
+                  message: string
+                  schema: Schema
+        404:
+          body:
+            application/json:
+              type:
+                properties:
+                 message: string
+              example: |
+                {"message" : "Schema not found"}
+    delete:
+      description: Delete a schema having schemaid={schemaid}
+      responses: 
+        204:
+          body: 
+            application/json:
+              type:
+                properties:
+                  message: string
+              example: |
+                {
+                  "message" : "Schema deleted"
+                } 
+        404:
+          body:
+            application/json: 
+              type:
+                properties:
+                 message: string
+              example: |
+                {
+                  "message" : "Schema not found"
+                }
+            
+/dictionaries:
+  description: A collection of dictionaries
+  is: secured
+  get:
+    is: pageable
+    description: Get a collection of dictionaries 
+    queryParameters: 
+      language:
+        type: string 
+        required: false
+        description: Filter dictionaries based on their language
+        example: en
+    responses: 
+      200:
+        body:
+          application/json:
+            type: Dictionary[]
+  post:
+    body:
+      application/json:
+        type: Dictionary
+    responses: 
+      201:
+        body:
+          application/json:
+            type: Dictionary
+  /{dictionaryid}:
+    get:
+      description: Get a dictionary having 'dictionaryid={dictionaryid}'
+      responses:
+        200:
+          body:
+            application/json:
+              type: Dictionary
+        404:
+          body:
+            application/json: 
+              type:
+                properties:
+                 message: string
+              example: |
+                {"message":"Dictionary not found"}
+    put:
+      body:
+        application/json:
+          type: Dictionary
+      responses:
+        200:
+          body:
+            application/json:
+              type:
+                properties:
+                  message: string
+                  dictionary: Dictionary
+        404:
+          body:
+            application/json: 
+              type:
+                properties:
+                 message: string
+              example: |
+                {"message":"Dictionary not found"}
+    delete:
+      description: Delete a dictionary having the specific dictionary 
+      responses: 
+        204:
+          body: 
+            application/json:
+              type:
+                properties:
+                  message: string
+              example: |
+                {
+                  "message" : "Dictionary deleted"
+                } 
+        404:
+          body:
+            application/json: 
+              type:
+                properties:
+                 message: string
+              example: |
+                {
+                  "message" : "Dictionary not found"
+                }
+/relevancealgorithms:
+  description: A collection of relevance algorithms
+  is: secured
+  get:
+    is: pageable 
+    description: Get a collection of relevance algorithms 
+    responses: 
+      200:
+        body:
+          application/json:
+            type: RelevanceAlgorithm[]
+  post:
+    body: 
+      type: RelevanceAlgorithm
+    responses: 
+      201:
+        body:
+          application/json:
+            type: RelevanceAlgorithm
+  /{relevancealgorithmid}:
+    is: secured
+    get:
+      description: Get relevance algorithm having relevancealgorithmid={relevancealgorithmid}
+      responses: 
+        200:
+          body: 
+           application/json:
+             type: RelevanceAlgorithm
+        404:
+          body:
+            application/json: 
+              type:
+                properties:
+                 message: string
+              example: |
+                {
+                  "message" : "Relevance algorithm not found"
+                }
+    put:
+      description: Update relevance algorithm having relevancealgorithmid={relevancealgorithmid}
+      responses: 
+        200:
+          body: 
+            application/json:
+              type:
+                properties:
+                  message: string
+                  relevanceAlgorithm: RelevanceAlgorithm
+              example: |
+                {
+                  "message" : "Relevance algorithm updated",
+                  "relevanceAlgorithm" : {
+                    "id": "1",
+                    "algorithm" : "ALGORITHM REPRESENTATION"
+                  }
+                } 
+    delete:
+      description: Delete relevance algorithm having relevancealgorithmid={relevancealgorithmid}
+      responses: 
+        204:
+          body: 
+            application/json:
+              type:
+                properties:
+                  message: string
+              example: |
+                {
+                  "message" : "Relevance algorithm deleted"
+                } 
+        404:
+          body:
+            application/json: 
+              type:
+                properties:
+                 message: string
+              example: |
+                {
+                  "message" : "Relevance algorithm not found"
+                }
+      
+      
+      

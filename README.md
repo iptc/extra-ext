@@ -1,13 +1,13 @@
 # extra-ext
-API implementation, User Interface, and more modules of the IPTC EXTRA project running as Docker containers.
+API implementation, User Interface, and more modules of the IPTC EXTRA project.
 
 ## Description
-The services that EXTRA platform is built upon are the following:
+EXTRA platform is built upon a set of services, deployed and running inside Docker containers. More specifically, the services of the platform are the following ones:
 
 * [mongodb](https://www.mongodb.com/) - MongoDB is an open-source, document database that is used to store rules, schemas, dictionaries, taxonomies and topics.
 * [elasticsearch](https://www.elastic.co/products/elasticsearch) - Elastic search used for the indexing of documents and rules. Indexed document are used for testing of rules during their development. Rules are indexed into Percolate index of Elastic Search to be used for document classification.
-* [documents-api](https://github.com/iptc/extra-ext/tree/master/documents-api) - An API for documents indexed in Elastic Search built as a Python Flask library.
-* [api](https://github.com/iptc/extra-ext/tree/master/api) - EXTRA API built using [Jersey framework](https://jersey.github.io/). That API exposes the main functionality of EXTRA, including management of rules, schemas, taxonomies and topics (create, update, delete), and also document retrieval and tagging using rules.
+* [documents-api](https://github.com/iptc/extra-ext/tree/master/documents-api) - An API for documents indexed in ElasticSearch. This API is built using Python Flask library.
+* [api](https://github.com/iptc/extra-ext/tree/master/api) - EXTRA API built using [Jersey framework](https://jersey.github.io/). That API exposes the main functionality of EXTRA, including management of rules, schemas, taxonomies and topics (create, update, delete), and also document retrieval and tagging. A description of the API in RAML can be found in [this link](api/extra-api.raml). 
 * [ui](https://github.com/iptc/extra-ext/tree/master/ui) - A web interface on top of the previous two APIs.
 
 The architecture of EXTRA platform is depicted in the following figure. All the service are deployed in Docker containers. To make deployment easier, the platform is described in a [docker-compose file](https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml).
@@ -24,7 +24,7 @@ There are three points need to be revised to be able to deploy EXTRA platform.
 ### MongoDB
 
 
-First off all, you have to specify data volume of mongodb to ensure data persistence. The directory /data/db inside the container that runs mongodb has to be mounted in a directory on the host machine's local filesystem. To define local directory change `yaml<path to local mongodb data directory>` in the below section.
+First off all, you have to specify data volume of mongodb to ensure data persistence. The directory /data/db inside the container that runs mongodb has to be mounted in a directory on the host machine's local filesystem. To define local directory change `<path to local mongodb data directory>` in the below section.
 
 ```yaml
 mongodb:
@@ -35,8 +35,7 @@ mongodb:
 
 ### Elastic Search
 
-
-In the same way the directory to which elastic search keeps its indexes have to be specified.
+In the same way the directory to which elastic search keeps its indexes has to be specified:
 
 ```yaml
 elasticsearch:
@@ -62,7 +61,7 @@ By default, the services will expose the following default ports:
 * **api** -> *8888*
 * **ui** -> *80*
 
-To change the default ports, edit the correspondign section in docker-compose.yaml file. For example to change the
+To change the default ports, edit the corresponding section in docker-compose.yaml file. For example to change the
 port *8888* used by EXTRA API to another port e.g. *9999*, edit the file as follows:
 
 ```yaml
