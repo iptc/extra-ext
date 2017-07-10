@@ -2,15 +2,15 @@
 API implementation, User Interface, and more modules of the IPTC EXTRA project.
 
 ## Description
-EXTRA platform is built upon a set of services, deployed and running inside Docker containers. More specifically, the services of the platform are the following ones:
+EXTRA platform is built upon a set of services, deployed and running inside [Docker](https://www.docker.com/) containers. More specifically, the services of the platform are the following ones:
 
-* [mongodb](https://www.mongodb.com/) - MongoDB is an open-source, document database that is used to store rules, schemas, dictionaries, taxonomies and topics.
+* [mongodb](https://www.mongodb.com/) - MongoDB is an open-source, document database that is used to store rules, schemas, dictionaries, taxonomies and topics. Access to MongoDB is not allowed directly outside Docker. To access the stored objects, the API methods must be used.
 * [elasticsearch](https://www.elastic.co/products/elasticsearch) - Elastic search used for the indexing of documents and rules. Indexed document are used for testing of rules during their development. Rules are indexed into Percolate index of Elastic Search to be used for document classification.
-* [documents-api](https://github.com/iptc/extra-ext/tree/master/documents-api) - An API for documents indexed in ElasticSearch. This API is built using Python Flask library.
-* [api](https://github.com/iptc/extra-ext/tree/master/api) - EXTRA API built using [Jersey framework](https://jersey.github.io/). That API exposes the main functionality of EXTRA, including management of rules, schemas, taxonomies and topics (create, update, delete), and also document retrieval and tagging. A description of the API in RAML can be found in [this link](api/extra-api.raml). 
-* [ui](https://github.com/iptc/extra-ext/tree/master/ui) - A web interface on top of the previous two APIs.
+* [documents-api](https://github.com/iptc/extra-ext/tree/master/documents-api) - An API for documents indexed in ElasticSearch, built using [Python Flask](http://flask.pocoo.org/) library.
+* [api](https://github.com/iptc/extra-ext/tree/master/api) - EXTRA API built using [Jersey framework](https://jersey.github.io/). That API exposes the main functionality of EXTRA, including management of rules, schemas, taxonomies and topics (create, update, delete), and also document retrieval and tagging. A description of the API in RAML can be found in [this link](api/extra-api.raml).
+* [ui](https://github.com/iptc/extra-ext/tree/master/ui) - A, HTML web interface on top of Apache web server. Uses the previous two APIs to expose the main functionality of EXTRA platform in a user friendly way. Consists of pages for rule writing and testing, management of taxonomies and schemas, document searching and document tagging.
 
-The architecture of EXTRA platform is depicted in the following figure. All the service are deployed in Docker containers. To make deployment easier, the platform is described in a [docker-compose file](https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml).
+The architecture of EXTRA platform is depicted in the following figure. To make deployment easier, the platform is described in a [docker-compose file](https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml).
 
 ![EXTRA platform architecture](extra_platform_arch.png)
 
@@ -24,7 +24,7 @@ There are three points need to be revised to be able to deploy EXTRA platform.
 ### MongoDB
 
 
-First off all, you have to specify data volume of mongodb to ensure data persistence. The directory /data/db inside the container that runs mongodb has to be mounted in a directory on the host machine's local filesystem. To define local directory change `<path to local mongodb data directory>` in the below section.
+First off all, you have to specify data volume of mongodb to ensure data persistence. The directory /data/db inside the container that runs mongodb has to be mounted in a directory on the host machine's local filesystem. To define the local directory change `<path to local mongodb data directory>` in the below section.
 
 ```yaml
 mongodb:
@@ -47,7 +47,7 @@ elasticsearch:
       - <path to local elasticsearch data directory>:/usr/share/elasticsearch/data
 ```
 
-Make sure that user that execute tha docker images has r/w rights to the elastic search data directory. The easiest way is to give full access:
+Make sure that user that executes the docker images has r/w rights to the elastic search data directory. The easiest way is to give full access:
 
 ```sh
 $chmod 777 -R <path to local elasticsearch data directory>
