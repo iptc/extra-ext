@@ -17,7 +17,7 @@ The architecture of EXTRA platform is depicted in the following figure. To make 
 
 ## Configuration
 
-To configure the platform for development, [docker-compose file] (https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) must be edited.
+To configure the platform for development, [docker-compose file](https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) must be edited.
 
 There are three points need to be revised to be able to deploy EXTRA platform.
 
