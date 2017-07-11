@@ -17,7 +17,7 @@ The architecture of EXTRA platform is depicted in the following figure. To make 
 
 ## Configuration
 
-To configure the platform for development, [docker-compose file (https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) must be edited.
+To configure the platform for development, [docker-compose file] (https://github.com/iptc/extra-ext/blob/master/docker-compose.yaml) must be edited.
 
 There are three points need to be revised to be able to deploy EXTRA platform.
 
@@ -55,14 +55,14 @@ $chmod 777 -R <path to local elasticsearch data directory>
 **important** The *vm_max_map_count* kernel setting needs to be set to at least *262144* for production use.
 To apply the setting on a live system type: `sysctl -w vm.max_map_count=262144`
 
-By default, the services will expose the following default ports:
-* **elastic search** -> *9200*, *9300*
-* **documents-api** -> *5000*
-* **api** -> *8888*
-* **ui** -> *80*
+By default, the services allocate and expose the following default ports:
+* **elastic search:**  *9200*, *9300* -> *9200*, *9300*
+* **documents-api:** *5000* -> *5000*
+* **api:** *8888* -> *8888*
+* **ui:** *80* -> *80*
 
 To change the default ports, edit the corresponding section in docker-compose.yaml file. For example to change the
-port *8888* used by EXTRA API to another port e.g. *9999*, edit the file as follows:
+port *8888* used by EXTRA API to another port, e.g. *9999*, edit the file as follows:
 
 ```yaml
 api:
