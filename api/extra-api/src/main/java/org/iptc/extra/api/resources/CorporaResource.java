@@ -18,14 +18,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.bson.types.ObjectId;
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.daos.TaxonomiesDAO;
+import org.iptc.extra.core.es.ElasticSearchClient;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.Taxonomy;
+import org.iptc.extra.core.types.document.Document;
 import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.FindOptions;
 import org.mongodb.morphia.query.Query;
@@ -47,6 +49,10 @@ public class CorporaResource {
 	
 	@Inject
 	private TaxonomiesDAO taxonomiesDAO;
+	
+	@Inject
+	private ElasticSearchClient es;
+	
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -78,7 +84,7 @@ public class CorporaResource {
 			return Response.ok(response).build();
 		}
 		catch(Exception e) {
-			ErrorMessage msg = new ErrorMessage(e.getMessage());
+			Message msg = new Message(e.getMessage());
 			return Response.status(400).entity(msg).build();
 		}
 	}
@@ -90,18 +96,24 @@ public class CorporaResource {
 		try {
 			String id = corpus.getId();
 			if(id != null && dao.exists(id)) {
-				ErrorMessage msg = new ErrorMessage("Conflict. Corpus " + id + " already exists.");
+				Message msg = new Message("Conflict. Corpus " + id + " already exists.");
 				return Response.status(409).entity(msg).build();
 			}
 			else {
 				Key<Corpus> createdCorpusKey = dao.save(corpus);
 				corpus.setId(createdCorpusKey.getId().toString());
 	    		
+				//boolean corporaIndexCreated = es.createCorporaIndex(corpus);
+				//if(corporaIndexCreated) {
+				//	Message msg = new Message("ElasticSearch index failed to be created for corpus: " + corpus.getId());
+				//	return Response.status(400).entity(msg).build();
+				//}
+				
 	    		return Response.status(201).entity(corpus).build();
 			}
 		}
 		catch(Exception e) {
-			ErrorMessage msg = new ErrorMessage(e.getMessage());
+			Message msg = new Message(e.getMessage());
 			return Response.status(400).entity(msg).build();
 		}
     }
@@ -112,7 +124,7 @@ public class CorporaResource {
 		
 		Corpus corpus = dao.get(corpusid);
 		if(corpus == null) {
-			ErrorMessage msg = new ErrorMessage("Corpus " + corpusid + " not found");
+			Message msg = new Message("Corpus " + corpusid + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 		
@@ -135,7 +147,7 @@ public class CorporaResource {
 		
 		Corpus corpus = dao.get(corpusid);
 		if(corpus == null) {
-			ErrorMessage msg = new ErrorMessage("Corpus " + corpusid + " not found");
+			Message msg = new Message("Corpus " + corpusid + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 		
@@ -148,6 +160,9 @@ public class CorporaResource {
 		
 		dao.update(query, ops);
 		
+
+		
+		
 		return Response.status(200).entity(newCorpus).build();
 	}
 	
@@ -157,11 +172,35 @@ public class CorporaResource {
 		
 		Corpus corpus = dao.get(corpusid);
 		if(corpus == null) {
-			ErrorMessage msg = new ErrorMessage("Corpus " + corpusid + " not found");
+			Message msg = new Message("Corpus " + corpusid + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 		
 		dao.deleteById(corpusid);
 		return Response.status(204).entity(corpusid).build();
 	}
+	
+	@POST @Path("{corpusid}/document")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response indexDocument(@PathParam("corpusid") String corpusid, Document document) {
+		
+		Corpus corpus = dao.get(corpusid);
+		if(corpus == null) {
+			Message msg = new Message("Corpus " + corpusid + " not found");
+			return Response.status(404).entity(msg).build();
+		}
+		
+		Schema schema = schemasDAO.get(corpus.getSchemaId());
+		if(schema == null) {
+			Message msg = new Message("Schema " + corpus.getSchemaId() + " not found");
+			return Response.status(404).entity(msg).build();
+		}
+		
+		es.indexDocument(corpus.getId(), document, schema);
+		
+		Message msg = new Message("Document indexed succesfuly");
+		return Response.status(201).entity(msg).build();
+		
+    }
 }

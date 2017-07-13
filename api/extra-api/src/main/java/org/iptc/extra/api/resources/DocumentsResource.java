@@ -25,7 +25,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
 import org.iptc.extra.api.datatypes.DocumentPagedResponse;
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
@@ -76,7 +76,7 @@ public class DocumentsResource {
 		try {			
 			Corpus corpus = corporaDAO.get(corpusId);
 			if(corpus == null) {
-				ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+				Message msg = new Message("Cannot find corpus " + corpusId);
 				return Response.status(400).entity(msg).build();
 			}
 			
@@ -86,13 +86,13 @@ public class DocumentsResource {
 			
 			Rule savedRule = dao.get(rule.getId());
 			if(savedRule == null) {
-				ErrorMessage msg = new ErrorMessage("Cannot find rule " + rule.getId());
+				Message msg = new Message("Cannot find rule " + rule.getId());
 				return Response.status(404).entity(msg).build();
 			}
 			
 			QueryBuilder rulesQuery = getRuleQuery(rule, schema);
 			if(rulesQuery == null) {
-				ErrorMessage msg = new ErrorMessage("CQL to ES translation failed.");
+				Message msg = new Message("CQL to ES translation failed.");
 				return Response.status(400).entity(msg).build();
 			}
 
@@ -106,6 +106,7 @@ public class DocumentsResource {
 			
 			QueryBuilder qb = null;		// ES query
 			QueryBuilder hqb = getHighlightQuery(rule, schema);		// ES query used for highlighting
+			System.out.println(hqb);
 			if(match.equals("topicMatches")) {
 				qb = getTopicQuery(topicId);
 				hqb = null;
@@ -136,7 +137,7 @@ public class DocumentsResource {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			ErrorMessage msg = new ErrorMessage(e.getMessage());
+			Message msg = new Message(e.getMessage());
 			return Response.status(400).entity(msg).build();
 		}
 	}

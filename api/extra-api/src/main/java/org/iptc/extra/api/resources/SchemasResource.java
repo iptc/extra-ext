@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.bson.types.ObjectId;
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.types.Schema;
@@ -67,7 +67,7 @@ public class SchemasResource {
     public Response postSchema(Schema schema) {
 		String id = schema.getId();
     	if(id != null && dao.exists(id)) {
-    		ErrorMessage msg = new ErrorMessage("Conflict. Schema " + id + " already exists.");
+    		Message msg = new Message("Conflict. Schema " + id + " already exists.");
 			return Response.status(409).entity(msg).build();
     	}
     	else {
@@ -83,7 +83,7 @@ public class SchemasResource {
 	public Response getSchema(@PathParam("schemaid") String schemaid) {
 		Schema schema = dao.get(schemaid);
 		if(schema == null) {
-			ErrorMessage msg = new ErrorMessage("Schema " + schema + " not found");
+			Message msg = new Message("Schema " + schema + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 		
@@ -95,7 +95,7 @@ public class SchemasResource {
 	public Response putSchema(@PathParam("schemaid") String schemaid, Schema newSchema) {
 		Schema schema = dao.get(schemaid);
 		if(schema == null) {
-			ErrorMessage msg = new ErrorMessage("Schema " + schema + " not found");
+			Message msg = new Message("Schema " + schema + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 		
@@ -116,7 +116,7 @@ public class SchemasResource {
 		try {
 			Schema schema = dao.get(schemaid);
 			if(schema == null) {
-				ErrorMessage msg = new ErrorMessage("Schema " + schema + " not found");
+				Message msg = new Message("Schema " + schema + " not found");
 				return Response.status(404).entity(msg).build();
 			}
 			

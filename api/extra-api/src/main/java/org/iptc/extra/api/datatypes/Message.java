@@ -3,13 +3,13 @@ package org.iptc.extra.api.datatypes;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class ErrorMessage {
+public class Message {
 
-	public ErrorMessage() {
+	public Message() {
 		
 	}
 	
-	public ErrorMessage(String message) {
+	public Message(String message) {
 		this.message = message;
 	}
 	

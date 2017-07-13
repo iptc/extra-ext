@@ -17,7 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.TaxonomiesDAO;
 import org.iptc.extra.core.daos.TopicsDAO;
@@ -75,7 +75,7 @@ public class TaxonomyResource {
 	 public Response postTaxonomy(Taxonomy taxonomy) {
 		 String id = taxonomy.getId();
 		 if(id != null && taxonomiesDao.exists(id)) {
-			 ErrorMessage msg = new ErrorMessage("Conflict. Taxonomy " + id + " already exists.");
+			 Message msg = new Message("Conflict. Taxonomy " + id + " already exists.");
 			 return Response.status(409).entity(msg).build();
 		 }
 		 else {
@@ -92,7 +92,7 @@ public class TaxonomyResource {
 		 
 		 Taxonomy taxonomy = taxonomiesDao.get(taxonomyid);
 		 if(taxonomy == null) {
-			 ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomy + " not found");
+			 Message msg = new Message("Taxonomy " + taxonomy + " not found");
 			 return Response.status(404).entity(msg).build();
 		 }
 		 
@@ -116,13 +116,13 @@ public class TaxonomyResource {
 		 
 		 Taxonomy taxonomy = taxonomiesDao.get(taxonomyid);
 		 if(taxonomy == null) {
-			 ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomyid + " not found");
+			 Message msg = new Message("Taxonomy " + taxonomyid + " not found");
 			 return Response.status(404).entity(msg).build();
 		 }
 			
 		 WriteResult r = taxonomiesDao.deleteById(taxonomyid);
 		 if(r.getN() == 0) {
-			ErrorMessage msg = new ErrorMessage("Taxonomy " + taxonomyid + " failed to be deleted");
+			 Message msg = new Message("Taxonomy " + taxonomyid + " failed to be deleted");
 			return Response.status(404).entity(msg).build();
 		 }
 			
@@ -161,7 +161,7 @@ public class TaxonomyResource {
 			 return Response.status(200).entity(response).build();
 		 } 
 		 catch(Exception e) {
-			 ErrorMessage msg = new ErrorMessage(e.getMessage());
+			 Message msg = new Message(e.getMessage());
 			 return Response.status(400).entity(msg).build();
 		 }
 	 }
@@ -180,7 +180,7 @@ public class TaxonomyResource {
 			 return Response.status(201).entity(topic).build();
 		 }
 		 catch(Exception e) {
-			 ErrorMessage msg = new ErrorMessage(e.getMessage());
+			 Message msg = new Message(e.getMessage());
 			 return Response.status(400).entity(msg).build();	
 		 }
 	 }
@@ -195,14 +195,14 @@ public class TaxonomyResource {
 		 try {
 			 Topic topic = dao.get(topicId, taxonomyid);
 			 if(topic == null) {
-			 	ErrorMessage msg = new ErrorMessage("Topic " + topicId + " not found");
+				 Message msg = new Message("Topic " + topicId + " not found");
 			 	return Response.status(404).entity(msg).build();	
 			 }
 		 
 			 return Response.status(201).entity(topic).build();
 		 }
 		 catch(Exception e) {
-			 ErrorMessage msg = new ErrorMessage(e.getMessage());
+			 Message msg = new Message(e.getMessage());
 			 return Response.status(400).entity(msg).build();	
 		 }
 	 }
@@ -217,7 +217,7 @@ public class TaxonomyResource {
 		 try {
 			 Topic topic = dao.get(topicId, taxonomyid);
 			 if(topic == null) {
-				 ErrorMessage msg = new ErrorMessage("Topic " + topicId + " not found");
+				 Message msg = new Message("Topic " + topicId + " not found");
 					return Response.status(404).entity(msg).build();
 			 }
 			 
@@ -245,7 +245,7 @@ public class TaxonomyResource {
 			 
 		 }
 		 catch(Exception e) {
-			 ErrorMessage msg = new ErrorMessage(e.getMessage());
+			 Message msg = new Message(e.getMessage());
 			 return Response.status(400).entity(msg).build();	
 		 }
 	 }
@@ -259,20 +259,20 @@ public class TaxonomyResource {
 		 	try {
 		 		Topic topic = dao.get(topicId, taxonomyid);
 				if(topic == null) {
-					ErrorMessage msg = new ErrorMessage("Topic " + topicId + " not found");
+					Message msg = new Message("Topic " + topicId + " not found");
 					return Response.status(404).entity(msg).build();
 				}
 				
 				WriteResult r = dao.delete(topicId, taxonomyid);
 				if(r.getN() == 0) {
-					ErrorMessage msg = new ErrorMessage("Topic " + topicId + " failed to be deleted");
+					Message msg = new Message("Topic " + topicId + " failed to be deleted");
 					return Response.status(404).entity(msg).build();
 				}
 			
 				return Response.status(204).entity(topic).build();
 		 	}
 		 	catch(Exception e) {
-		 		ErrorMessage msg = new ErrorMessage("Exception: " + e.getMessage());
+		 		Message msg = new Message("Exception: " + e.getMessage());
 				 return Response.status(400).entity(msg).build();
 		 	}
 	 }

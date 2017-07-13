@@ -25,7 +25,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.bson.types.ObjectId;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.GroupDAO;
@@ -153,7 +153,7 @@ public class RulesResource {
     	
     	String id = rule.getId();
     	if(id != null && dao.exists(id)) {
-    		ErrorMessage msg = new ErrorMessage("Conflict. Rule " + id + " already exists.");
+    		Message msg = new Message("Conflict. Rule " + id + " already exists.");
 			return Response.status(409).entity(msg).build();
     	}
     	else {
@@ -189,7 +189,7 @@ public class RulesResource {
     	}
     	catch(Exception e) {
     		e.printStackTrace();
-    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+    		Message msg = new Message("Exception " + e.getMessage());
 			return Response.status(404).entity(msg).build();
     	}
 	}
@@ -200,7 +200,7 @@ public class RulesResource {
     	try {
     		String id = group.getId();
         	if(id != null && groupDAO.exists(id)) {
-        		ErrorMessage msg = new ErrorMessage("Conflict. Group " + id + " already exists.");
+        		Message msg = new Message("Conflict. Group " + id + " already exists.");
     			return Response.status(409).entity(msg).build();
         	}
         	else {
@@ -213,7 +213,7 @@ public class RulesResource {
     	}
     	catch(Exception e) {
     		e.printStackTrace();
-    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+    		Message msg = new Message("Exception " + e.getMessage());
 			return Response.status(404).entity(msg).build();
     	}
 	}
@@ -224,7 +224,7 @@ public class RulesResource {
     	try {
     		Group group = groupDAO.get(groupid);
     		if(group == null) {
-    			ErrorMessage msg = new ErrorMessage("Group " + groupid + " not found");
+    			Message msg = new Message("Group " + groupid + " not found");
     			return Response.status(404).entity(msg).build();
     		}
 
@@ -232,7 +232,7 @@ public class RulesResource {
     	}
     	catch(Exception e) {
     		e.printStackTrace();
-    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+    		Message msg = new Message("Exception " + e.getMessage());
 			return Response.status(404).entity(msg).build();
     	}
 	}
@@ -243,13 +243,13 @@ public class RulesResource {
     	try {
     		Group group = groupDAO.get(groupid);
     		if(group == null) {
-    			ErrorMessage msg = new ErrorMessage("Group " + groupid + " not found");
+    			Message msg = new Message("Group " + groupid + " not found");
     			return Response.status(404).entity(msg).build();
     		}
     		
     		WriteResult r = groupDAO.deleteById(groupid);
     		if(r.getN() == 0) {
-    			ErrorMessage msg = new ErrorMessage("Group " + groupid + " failed to be deleted.");
+    			Message msg = new Message("Group " + groupid + " failed to be deleted.");
     			return Response.status(404).entity(msg).build();
     		}
     		
@@ -257,7 +257,7 @@ public class RulesResource {
     	}
     	catch(Exception e) {
     		e.printStackTrace();
-    		ErrorMessage msg = new ErrorMessage("Exception " + e.getMessage());
+    		Message msg = new Message("Exception " + e.getMessage());
 			return Response.status(404).entity(msg).build();
     	}
 	}
@@ -274,7 +274,7 @@ public class RulesResource {
 
 		Rule rule = dao.get(ruleid);
 		if(rule == null) {
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
+			Message msg = new Message("Rule " + ruleid + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 		
@@ -311,7 +311,7 @@ public class RulesResource {
 		try { 
 			Rule rule = dao.get(ruleid);
 			if(rule == null) {
-				ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
+				Message msg = new Message("Rule " + ruleid + " not found");
 				return Response.status(404).entity(msg).build();
 			}
 		
@@ -387,7 +387,7 @@ public class RulesResource {
 					if(schemaId == null || !schemasDAO.exists(schemaId)) {
 						Corpus corpus = corporaDAO.get(corpusId);
 						if(corpus == null) {
-							ErrorMessage msg = new ErrorMessage("Cannot find corpus " + corpusId);
+							Message msg = new Message("Cannot find corpus " + corpusId);
 							return Response.status(400).entity(msg).build();
 						}
 						schemaId = corpus.getSchemaId();
@@ -406,7 +406,7 @@ public class RulesResource {
 					dao.update(q, ops);
 				
 				} catch (IOException e) {
-					ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
+					Message msg = new Message("Rule " + ruleid + " cannot be submitted: " + e.getMessage());
 					return Response.status(400).entity(msg).build();
 				}
 			}
@@ -427,7 +427,7 @@ public class RulesResource {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			ErrorMessage msg = new ErrorMessage("Excpetion " + e.getMessage());
+			Message msg = new Message("Exception: " + e.getMessage());
 			return Response.status(404).entity(msg).build();
 		}
 	}
@@ -443,6 +443,8 @@ public class RulesResource {
 		Schema schema = schemasDAO.get(schemaId);	
 		QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
 			
+		System.out.println(qb);
+		
 		// Submit rule into percolate index
 		es.createSchemaMapping(schema);
 		es.submitRule(ruleid, qb, schemaId, groupId);
@@ -454,7 +456,7 @@ public class RulesResource {
 		
 		Rule rule = dao.get(ruleid);
 		if(rule == null) {
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " not found");
+			Message msg = new Message("Rule " + ruleid + " not found");
 			return Response.status(404).entity(msg).build();
 		}
 
@@ -463,7 +465,7 @@ public class RulesResource {
 				try {
 					es.deleteRule(rule.getId(), schema.getId());
 				} catch (IOException e) {
-					ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " failed to be deleted from percolate index");
+					Message msg = new Message("Rule " + ruleid + " failed to be deleted from percolate index");
 					return Response.status(404).entity(msg).build();
 				}	
 			}
@@ -471,7 +473,7 @@ public class RulesResource {
 		
 		WriteResult r = dao.deleteById(ruleid);
 		if(r.getN() == 0) {
-			ErrorMessage msg = new ErrorMessage("Rule " + ruleid + " failed to be deleted.");
+			Message msg = new Message("Rule " + ruleid + " failed to be deleted.");
 			return Response.status(404).entity(msg).build();
 		}
 		

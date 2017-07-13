@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
 import org.elasticsearch.index.query.QueryBuilder;
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
@@ -156,7 +156,7 @@ public class ValidationsResource {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			ErrorMessage error = new ErrorMessage(e.getMessage());
+			Message error = new Message(e.getMessage());
 			return Response.status(400).entity(error).build();
 		}
 	}

@@ -17,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.iptc.extra.api.datatypes.ClassificationInput;
-import org.iptc.extra.api.datatypes.ErrorMessage;
+import org.iptc.extra.api.datatypes.Message;
 import org.iptc.extra.api.datatypes.PagedResponse;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
@@ -58,7 +58,7 @@ public class ClassificationsResource {
 		try {
 			Schema schema = schemasDAO.get(schemaId);
 			if(schema == null) {
-				ErrorMessage msg = new ErrorMessage("Schema " + schemaId + " does not exist");
+				Message msg = new Message("Schema " + schemaId + " does not exist");
 				return Response.status(404).entity(msg).build();
 			}
 		
@@ -68,7 +68,7 @@ public class ClassificationsResource {
 			Set<String> schemaFields = schema.getFieldNames();
 			if(!schemaFields.containsAll(documentFields)) {
 				documentFields.removeAll(schemaFields);
-				ErrorMessage msg = new ErrorMessage("Document contains unknown fields: " + documentFields);
+				Message msg = new Message("Document contains unknown fields: " + documentFields);
 				return Response.status(400).entity(msg).build();
 			}
 			
@@ -94,7 +94,7 @@ public class ClassificationsResource {
 	        
 		} catch (Exception e) {
 			e.printStackTrace();
-			ErrorMessage msg = new ErrorMessage("Classification failed!");
+			Message msg = new Message("Classification failed!");
 			return Response.status(400).entity(msg).build();
 		}
 		
