@@ -15,3 +15,15 @@ This directory contains the Java project that implements the REST API described 
 | **/documents** | A resource endpoint used to retrieve documents given a rule |
 | **/classifications** | A resource endpoint used to classify a document |
 | **/validations** | A resource endpoint used to validate a rule  |
+
+## Configuration, build and execution
+
+To build the project:
+```sh
+$ mvn cleanpackage
+```
+
+To execute it:
+```sh
+$ mvn  exec:java
+```
