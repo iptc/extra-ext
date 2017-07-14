@@ -11,8 +11,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -106,7 +108,6 @@ public class DocumentsResource {
 			
 			QueryBuilder qb = null;		// ES query
 			QueryBuilder hqb = getHighlightQuery(rule, schema);		// ES query used for highlighting
-			System.out.println(hqb);
 			if(match.equals("topicMatches")) {
 				qb = getTopicQuery(topicId);
 				hqb = null;
@@ -280,4 +281,37 @@ public class DocumentsResource {
 		return qb;
 	}
 	
+	@GET @Path("{documentid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getDocument(@PathParam("documentid") String documentid, @QueryParam("corpusid") String corpusid) {
+		
+		Corpus corpus = corporaDAO.get(corpusid);
+		if(corpus == null) {
+			Message msg = new Message("Corpus " + corpusid + " not found");
+			return Response.status(404).entity(msg).build();
+		}
+		
+		Schema schema = schemasDAO.get(corpus.getSchemaId());
+		if(schema == null) {
+			Message msg = new Message("Schema " + corpus.getSchemaId() + " not found");
+			return Response.status(404).entity(msg).build();
+		}
+		
+		try {
+			Document document = es.getDocument(documentid, corpus.getId(), schema);
+			if(document == null) {
+				Message msg = new Message("Document " + documentid + " not found");
+				return Response.status(404).entity(msg).build();
+			}
+				
+			return Response.status(200).entity(document).build();
+				
+		} catch (IOException e) {
+			Message msg = new Message("Exception for document " + documentid + ": " + e.getMessage());
+			return Response.status(400).entity(msg).build();
+		}
+		
+	}
+
 }
