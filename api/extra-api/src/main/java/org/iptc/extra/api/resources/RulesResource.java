@@ -442,11 +442,11 @@ public class RulesResource {
 			
 		Schema schema = schemasDAO.get(schemaId);	
 		QueryBuilder qb = mapper.toElasticSearchQuery(root, schema);
-			
-		System.out.println(qb);
+		
+		// Create schema mapping
+		es.createPercolateIndexMapping(schema);
 		
 		// Submit rule into percolate index
-		es.createSchemaMapping(schema);
 		es.submitRule(ruleid, qb, schemaId, groupId);
 	}
 	
