@@ -10,7 +10,7 @@ This directory contains the Java project that implements the REST API described 
 | **/schemas** | A resource endpoint used to get, create update and delete schemas |
 | **/corpora** | A resource endpoint used to get, create update and delete corpora |
 | **/taxonomies** | A resource endpoint used to get, create update and delete taxonomies |
-| **/taxonomies/<taxonomy-id>/topics** | A resource endpoint used to get, create update and delete topics in a specific taxonomy |
+| **/taxonomies/{taxonomy-id}/topics** | A resource endpoint used to get, create update and delete topics in a specific taxonomy |
 | **/dictionaries** | A resource endpoint used to get, create update and delete dictionaries |
 | **/documents** | A resource endpoint used to retrieve documents given a rule |
 | **/classifications** | A resource endpoint used to classify a document |
