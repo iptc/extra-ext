@@ -27,6 +27,7 @@ services:
       script.max_compilations_per_minute: 200
       xpack.security.enabled: 'false'
       xpack.monitoring.enabled: 'false'
+      "ES_JAVA_OPTS=-Xms2g -Xmx8g"
     networks:
       esnet:
         aliases:
