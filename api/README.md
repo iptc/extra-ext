@@ -32,7 +32,7 @@ es.port = 9300
 base.uri = http://0.0.0.0:8888/extra/api
 ```
 
-To note that the properties file is ready to be used in conjunction with Docker.
+To note that the properties file is ready to be used in conjunction with Docker. For example, the hostname of MongoDB is *mongodb* as that the alias name of the container that run mongodb docker image, In the same way, *elasticsearch* is the alias name for ElasticSearch container. If the user wants to use the API on top of already running services, e.g. a running ElasticSearch cluster, he has to edit the file accordingly.
 
 
 To build the project:
