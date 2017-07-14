@@ -1,5 +1,5 @@
 # extra-ext
-API implementation, User Interface, and more modules of the IPTC EXTRA project.
+API implementation, User Interface, and more modules of the IPTC EXTRA project. For a more detailed description of the integrated toolkit and its functionalities, please read the [user manual](https://github.com/iptc/extra-ext/blob/master/IPTC%20EXTRA%20User%20Manual.pdf).
 
 ## Description
 EXTRA platform is built upon a set of services, deployed and running inside [Docker](https://www.docker.com/) containers. More specifically, the services of the platform are the following ones:
