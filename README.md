@@ -98,9 +98,10 @@ $ docker-compose down
 
 ## Contact for further details about the project
 
-Manos Schinas (manosetro@iti.gr), Symeon Papadopoulos (papadop@iti.gr)
+Technical details: Manos Schinas (manosetro@iti.gr), Symeon Papadopoulos (papadop@iti.gr)
+Project as a whole: [IPTC](https://iptc.org) (office@iptc.org)
 
 ## See the other repositories of the IPTC EXTRA project:
 
 * [extra-core](https://github.com/iptc/extra-core) - Core implementation of EXTRA
-* [extra-rules](https://github.com/iptc/extra-rules) - Two sets of rules developed by EXTRA project
+* [extra-examples](https://github.com/iptc/extra-examples) - Examples developed for EXTRA project
