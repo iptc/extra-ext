@@ -52,7 +52,7 @@ If EXTRA platform is deployed using Docker Compose, the image of the API is buil
 
 To create a new rule for a given taxonomy and a topic within that taxonomy:
 
-**POST** /rules
+**POST** */rules*
 
 **Request**
 
@@ -84,5 +84,17 @@ To create a new rule for a given taxonomy and a topic within that taxonomy:
 	"query": "(or (and (title adj/regexp \"\\d+\\-?\\s+?year\\-?\\s?old\") (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\") ) (and (title adj/regexp \"\\d+\\-?\\s+?month\\-?\\s?old\") (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\") ) )",
 	"taxonomy": "5901b9e5c41479000146ced2",
 	"topicId": "medtop:20000790"
+}
+```
+
+To update a given rule, e.g. change the query in the rule with `id=5967c20730c49e0001e6df0e` created in the above example, the PUT method has to be called:
+
+**PUT** */rules/5967c20730c49e0001e6df0e*
+
+*Body:*
+
+```json
+{
+	"query": "(and (or (body adj \"American Apparel\") (\"catwalk\") (\"catwalks\") (body adj \"clothing design*\") (body adj \"clothing industry\") (\"couture\") (\"Lanvin\") (body adj \"fashion consultant*\") (body adj \"fashion designer*\") (body adj \"fashion magazine*\") (body adj \"fashion model*\") (body adj \"fashion show*\") (body adj \"fashion week\") (body adj \"French fashion brand*\") (body adj \"high fashion\") (body adj \"low fashion\") (body adj \"model* agenc*\") (body adj \"street fashion\") ) (not (title = \"summary\") (title = \"general\") (title = \"schedule\") (title = \"NHL\") (title = \"suspects\") (title = \"accuses\") (title = \"dossier\") (title = \"chief\") (title = \"driver\") ) )",
 }
 ```
