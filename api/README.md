@@ -87,7 +87,7 @@ To create a new rule for a given taxonomy and a topic within that taxonomy:
 }
 ```
 
-To update a given rule, e.g. change the query in the rule with `id=5967c20730c49e0001e6df0e` created in the above example, the PUT method has to be called:
+To update a given rule, e.g. change the query in the rule with `id=5967c20730c49e0001e6df0e` created in the above example, the PUT method has to be called on that resource. The body of the mathod should contain the fields that need to be updated, i.e. the query in our case.
 
 **PUT** */rules/5967c20730c49e0001e6df0e*
 
@@ -96,5 +96,52 @@ To update a given rule, e.g. change the query in the rule with `id=5967c20730c49
 ```json
 {
 	"query": "(and (or (body adj \"American Apparel\") (\"catwalk\") (\"catwalks\") (body adj \"clothing design*\") (body adj \"clothing industry\") (\"couture\") (\"Lanvin\") (body adj \"fashion consultant*\") (body adj \"fashion designer*\") (body adj \"fashion magazine*\") (body adj \"fashion model*\") (body adj \"fashion show*\") (body adj \"fashion week\") (body adj \"French fashion brand*\") (body adj \"high fashion\") (body adj \"low fashion\") (body adj \"model* agenc*\") (body adj \"street fashion\") ) (not (title = \"summary\") (title = \"general\") (title = \"schedule\") (title = \"NHL\") (title = \"suspects\") (title = \"accuses\") (title = \"dossier\") (title = \"chief\") (title = \"driver\") ) )",
+}
+```
+
+### Validate a rule
+
+ To validate whether a rule has correct syntax, and if matches a given schema the */validations* method should me called.
+
+### Retrieve documents given a rule
+
+### Submit a rule, to be used for document tagging
+
+To make a rule available for classification/tagging of documents, that rule has be to submitted into Elastic Search percolate index. To submit a rule into percolate index, the status of the rule must be updated to *submitted*:
+
+**PUT** */rules/5967c20730c49e0001e6df0e?schemaId=591f072930c49e00011de8ec*
+
+```json
+{
+	"status":"submitted"
+}
+```
+
+As you can change multiple fields at the same call, you can change the query and status at the same time.
+
+```json
+{
+	"status":"submitted",
+	"query": "(and (or (body adj \"American Apparel\") (\"catwalk\") (\"catwalks\") (body adj \"clothing design*\") (body adj \"clothing industry\") (\"couture\") (\"Lanvin\") (body adj \"fashion consultant*\") (body adj \"fashion designer*\") (body adj \"fashion magazine*\") (body adj \"fashion model*\") (body adj \"fashion show*\") (body adj \"fashion week\") (body adj \"French fashion brand*\") (body adj \"high fashion\") (body adj \"low fashion\") (body adj \"model* agenc*\") (body adj \"street fashion\") ) (not (title = \"summary\") (title = \"general\") (title = \"schedule\") (title = \"NHL\") (title = \"suspects\") (title = \"accuses\") (title = \"dossier\") (title = \"chief\") (title = \"driver\") ) )",
+}
+```
+
+The method will uodate the query of the rule and then will submit it to percolate index.
+
+
+### Classify documents
+
+Given a set of rules, submitted into percolate index, new documents can be classified to topics by matching the documents to the rules. As rules are associated to topics, a match between a document and a rule indicates that the document is implicitly associated with the topic of the rule. As a document can match multiple rules, could be also associated with multiple topics.  
+
+POST / classifications?schemaId=591f072930c49e00011de8ec
+
+*Body: *
+
+```json
+{
+	"document": {
+		"title":"This is the title of the document"
+		"body":"This is the main body of the document."
+	}
 }
 ```
