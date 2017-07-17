@@ -126,7 +126,7 @@ To validate whether a rule has correct syntax, and if matches a given schema the
 }
 ```
 
-The json response contains the field `valid` which can be true or false, indicating if the rule is valid or not. If the rule is invalid, the `message` field contains the reasons of failure. There also some additional fields that are alternative representations of the rule. The `tree` field contains a tree based representation of the rule based on the [jstree](https://www.jstree.com/) library. The `html` field contains a rule tagged with HTML tags. Can be used by a user interface to visualize the rule in a user friendly way. Finally, the `es_dsl` fields is the rule expressed as an Elastic Search query. That representation is used to retrieve documents given a rule. Also that representation is the form in which the rule is indexed into percolate index.     
+The json response contains the field `valid` which can be true or false, indicating if the rule is valid or not. If the rule is invalid, the `message` field contains the reasons of failure. There also some additional fields that are alternative representations of the rule. The `tree` field contains a tree based representation of the rule based on the [jstree](https://www.jstree.com/) library. The `html` field contains a rule tagged with HTML tags. Can be used by a user interface to visualize the rule in a user friendly way. Finally, the `es_dsl` fields is the rule expressed as an Elastic Search query. That representation is used to retrieve documents given a rule. Also that representation is the form in which the rule is indexed into percolate index.
 
 
 ### Retrieve documents given a rule
@@ -181,6 +181,18 @@ Given a set of rules, submitted into percolate index, new documents can be class
 	"document": {
 		"title": "This is the title of the document",
 		"body": "This is the main body of the document."
+	}
+}
+```
+
+If a field contains paragraphs, these should be defined using `<p>` HTML tags.
+
+
+```json
+{
+	"document": {
+		"title": "This is the title of the document",
+		"body": "<p>This is a paragraph in the body of the document.</p><p>This is another paragraph.</p>"
 	}
 }
 ```
