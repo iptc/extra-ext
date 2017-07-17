@@ -50,46 +50,37 @@ If EXTRA platform is deployed using Docker Compose, the image of the API is buil
 
 ### Create and update a rule
 
-To create a new rule:
+To create a new rule for a given taxonomy and a topic within that taxonomy:
 
-**POST** /rules 
-Request
+**POST** /rules
 
-Headers:
-Accept: application/json
-Authorization: Basic Z2Vla25lc3NfbGV2ZWw6b3V0X29mX3RoaXNfd29ybGQ=
+**Request**
+*Headers:*
+**Accept**: *application/json*
 
-Body:
+*Body:*
 
+```json
 {
-	"name": null,
-	“surname": “chatzidimitriou"
-	"gender": “female"
-	"weight": 3.53
-	“imageUrl": "https://www.dropbox.com/s/nn2w5dcaxfudqut/IMG_3540.JPG?dl=0"
-	“date_of_birth": “15 Jul 2017"
+	"name": "Test Rule",
+	"query": "(or (and (title adj/regexp \"\\d+\\-?\\s+?year\\-?\\s?old\") (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\") ) (and (title adj/regexp \"\\d+\\-?\\s+?month\\-?\\s?old\") (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\") ) )",
+	"taxonomy": "5901b9e5c41479000146ced2",
+	"topicId": "medtop:20000790"
 }
+```
 
-Response
+**Response**
 
-201 Created
+*201 - Created*
 
+```json
 {
-	“id": 4,
-	"name": null,
-	“surname": “chatzidimitriou"
-	"gender": “female"
-	"weight": 3.53
-	“imageUrl": "https://www.dropbox.com/s/nn2w5dcaxfudqut/IMG_3540.JPG?dl=0"
-	“date_of_birth": “15 Jul 2017"
+	"id": "5967c20730c49e0001e6df0e",
+	"createdAt": 1499972103348,
+	"status": "new",
+	"name": "Test Rule",
+	"query": "(or (and (title adj/regexp \"\\d+\\-?\\s+?year\\-?\\s?old\") (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\") ) (and (title adj/regexp \"\\d+\\-?\\s+?month\\-?\\s?old\") (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\") ) )",
+	"taxonomy": "5901b9e5c41479000146ced2",
+	"topicId": "medtop:20000790"
 }
-
-
-
-### Validate a rule
-
-### Retrieve documents given a rule
-
-### Submit a final rule
-
-### Classify a new document
+```
