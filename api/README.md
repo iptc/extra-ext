@@ -101,13 +101,39 @@ To update a given rule, e.g. change the query in the rule with `id=5967c20730c49
 
 ### Validate a rule
 
- To validate whether a rule has correct syntax, and if matches a given schema the */validations* method should me called.
+To validate whether a rule has correct syntax, and if matches a given schema the */validations* method should me called.
+
+**POST** */validations?schemaId=591f072930c49e00011de8ec*
+
+*Body:*
+
+```json
+{
+ "id":"5967c20730c49e0001e6df0e",
+ "query":"(or<br> (and<br>  (title adj/regexp \"\\d+\\-?\\s+?year\\-?\\s?old\")<br>  (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\")<br> )<br> (and<br>  (title adj/regexp \"\\d+\\-?\\s+?month\\-?\\s?old\")<br>  (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\")<br> )<br>)<br>"
+}
+
+**Response**
+
+```json
+{
+	"valid":"true",
+	"es_dsl": "elastic search query of the rule",
+	"tree": "a tree-based representation of the rule",
+	"html" : "a html tagged representation of the rule",
+	"indices": ["title", "body"],
+	"message": ""
+}
+```
+
+The json response contains the field `valid` which can be true or false, indicating if the rule is valid or not. If the rule is invalid, the `message` field contains the reasons of failure. There also some additional fields that are alternative representations of the rule. The `tree` field contains a tree based representation of the rule based on the [jstree](https://www.jstree.com/) library. The `html` field contains a rule tagged with HTML tags. Can be used by a user interface to visualize the rule in a user friendly way. Finally, the `es_dsl` fields is the rule expressed as an Elastic Search query. That representation is used to retrieve documents given a rule. Also that representation is the form in which the rule is indexed into percolate index.     
+
 
 ### Retrieve documents given a rule
 
 **POST** */documents?page=1&corpus=591f07b530c49e00011de8ee&match=ruleMatches*
 
-*Body: *
+*Body:*
 
 ```json
 {
@@ -120,7 +146,7 @@ To update a given rule, e.g. change the query in the rule with `id=5967c20730c49
 
 ### Submit a rule, to be used for document tagging
 
-To make a rule available for classification/tagging of documents, that rule has be to submitted into Elastic Search percolate index. To submit a rule into percolate index, the status of the rule must be updated to *submitted*:
+To make a rule available for classification/tagging of documents, that rule has be to submitted into Elastic Search percolate index. To submit a rule into percolate index, the status of the rule must be updated to *submitted*. Note that in that call you have to specify also the schema id (`schemaId=591f072930c49e00011de8ec`):
 
 **PUT** */rules/5967c20730c49e0001e6df0e?schemaId=591f072930c49e00011de8ec*
 
@@ -146,9 +172,9 @@ The method will update the query of the rule and then will submit it to percolat
 
 Given a set of rules, submitted into percolate index, new documents can be classified to topics by matching the documents to the rules. As rules are associated to topics, a match between a document and a rule indicates that the document is implicitly associated with the topic of the rule. As a document can match multiple rules, could be also associated with multiple topics.  
 
-POST / classifications?schemaId=591f072930c49e00011de8ec
+**POST** */classifications?schemaId=591f072930c49e00011de8ec*
 
-*Body: *
+*Body:*
 
 ```json
 {
