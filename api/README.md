@@ -105,6 +105,19 @@ To update a given rule, e.g. change the query in the rule with `id=5967c20730c49
 
 ### Retrieve documents given a rule
 
+**POST** */documents?page=1&corpus=591f07b530c49e00011de8ee&match=ruleMatches*
+
+*Body: *
+
+```json
+{
+	"id":"5967c20730c49e0001e6df0e",
+	"query":"(or<br> (and<br>  (title adj/regexp \"\\d+\\-?\\s+?year\\-?\\s?old\")<br>  (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\")<br> )<br> (and<br>  (title adj/regexp \"\\d+\\-?\\s+?month\\-?\\s?old\")<br>  (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\")<br> )<br>)<br>"
+}
+
+
+```
+
 ### Submit a rule, to be used for document tagging
 
 To make a rule available for classification/tagging of documents, that rule has be to submitted into Elastic Search percolate index. To submit a rule into percolate index, the status of the rule must be updated to *submitted*:
@@ -126,7 +139,7 @@ As you can change multiple fields at the same call, you can change the query and
 }
 ```
 
-The method will uodate the query of the rule and then will submit it to percolate index.
+The method will update the query of the rule and then will submit it to percolate index.
 
 
 ### Classify documents
@@ -140,8 +153,8 @@ POST / classifications?schemaId=591f072930c49e00011de8ec
 ```json
 {
 	"document": {
-		"title":"This is the title of the document"
-		"body":"This is the main body of the document."
+		"title": "This is the title of the document",
+		"body": "This is the main body of the document."
 	}
 }
 ```
