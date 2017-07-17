@@ -55,8 +55,10 @@ To create a new rule for a given taxonomy and a topic within that taxonomy:
 **POST** /rules
 
 **Request**
+
 *Headers:*
-**Accept**: *application/json*
+
+*Accept: application/json*
 
 *Body:*
 
