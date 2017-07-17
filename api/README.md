@@ -131,7 +131,7 @@ The json response contains the field `valid` which can be true or false, indicat
 
 ### Retrieve documents given a rule
 
-**POST** */documents?page=1&corpus=591f07b530c49e00011de8ee&match=ruleMatches*
+**POST** */documents?page=1&corpus=591f07b530c49e00011de8ee&match=ruleMatches&nPerPage=2&page=1*
 
 *Body:*
 
@@ -140,8 +140,29 @@ The json response contains the field `valid` which can be true or false, indicat
 	"id":"5967c20730c49e0001e6df0e",
 	"query":"(or<br> (and<br>  (title adj/regexp \"\\d+\\-?\\s+?year\\-?\\s?old\")<br>  (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\")<br> )<br> (and<br>  (title adj/regexp \"\\d+\\-?\\s+?month\\-?\\s?old\")<br>  (body any/stemming \"boy child children girl infant juvenile kid newborn schoolboy schoolgirl toddler\")<br> )<br>)<br>"
 }
+```
+
+Internally, the ElasticSearch query generated from the EQL query is used to retrieve documents indexed in Elastic Search.
+The `match` parameter in the URL o fthe method can be used to specify how the rule matches documents. The default value (used when that parameter is missing) is `ruleMatches` meaning that any document that matches the rule is returned. The other options include:
+
+- **ruleOnlyMatches:** Retrieve any document that matches the rule, but is not annotated with the topic associated with the given rule
+- **topicMatches:** Retrieve any document annotated with the topic associated with the given rule
+- **matchingBoth:** Retrieve any document that matches the rule but is also annotated with the topic associated with the given rule
+- **topicOnlyMatches:** Retrieve any document annotated with the topic associated with the given rule, but does not match the rule itself
 
 
+**Response**
+
+```json
+{
+	"entries": [
+		{"score": "1", "title":"a matched document"},
+		{"score": "0.87", "title":"another matched document"}
+	],
+	"nPerPage": 2,
+	"page": 1,
+	"total": 638
+}
 ```
 
 ### Submit a rule, to be used for document tagging
@@ -167,12 +188,13 @@ As you can change multiple fields at the same call, you can change the query and
 
 The method will update the query of the rule and then will submit it to percolate index.
 
+Note that, if a rule is invalid, sumbission will fail. To ensure that rules wil be submitted successfully into percolate index, call validation method first.  
 
 ### Classify documents
 
 Given a set of rules, submitted into percolate index, new documents can be classified to topics by matching the documents to the rules. As rules are associated to topics, a match between a document and a rule indicates that the document is implicitly associated with the topic of the rule. As a document can match multiple rules, could be also associated with multiple topics.  
 
-**POST** */classifications?schemaId=591f072930c49e00011de8ec*
+**POST** */classifications?schemaId=591f072930c49e00011de8ec&nPerPage=2&page=1*
 
 *Body:*
 
@@ -196,3 +218,19 @@ If a field contains paragraphs, these should be defined using `<p>` HTML tags.
 	}
 }
 ```
+
+The response upon successful tagging contains a list of matched rules:
+
+```json
+{
+	"entries": [
+		{"id":"5967c20730c49e0001e6df0e", "name":"a matched rule", "query": "the EQL query", "topicId":"medtop:20000790"},
+		{"id":"595a8f35a7b11b0001cae333", "name":"another matched rule", "query": "the EQL query", "topicId":"medtop:20000011"}
+	],
+	"nPerPage": 2,
+	"page": 1,
+	"total": 638
+}
+```
+
+As each of the returned rules is associated with a topic, we can assume that the document is related to these topics. Usually, a limited number of rules/topics will be returned.
