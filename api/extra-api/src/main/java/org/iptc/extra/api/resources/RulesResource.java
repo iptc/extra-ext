@@ -31,6 +31,7 @@ import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.GroupDAO;
 import org.iptc.extra.core.daos.RulesDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
+import org.iptc.extra.core.daos.TopicsDAO;
 import org.iptc.extra.core.eql.EQLMapper;
 import org.iptc.extra.core.eql.EQLParser;
 import org.iptc.extra.core.eql.tree.SyntaxTree;
@@ -40,6 +41,7 @@ import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Group;
 import org.iptc.extra.core.types.Rule;
 import org.iptc.extra.core.types.Schema;
+import org.iptc.extra.core.types.Topic;
 import org.iptc.extra.core.utils.TextUtils;
 import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.FindOptions;
@@ -67,6 +69,9 @@ public class RulesResource {
 
     @Inject
     private RulesDAO dao;
+    
+    @Inject
+    private TopicsDAO topicsDao;
     
     @Inject
     private GroupDAO groupDAO;
@@ -131,6 +136,14 @@ public class RulesResource {
     	
     	long total = result.count();
 		List<Rule> rules = result.asList(options);
+    	for(Rule rule : rules) {
+    		if(rule.getTopicName() == null) {
+    			Topic topic = topicsDao.get(topicId, taxonomy);
+    			if(topic != null) {
+    				rule.setName(topic.getName());
+    			}
+    		}
+    	}
     	
 		PagedResponse<Rule> response = new PagedResponse<Rule>();
 		response.setEntries(rules);

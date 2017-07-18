@@ -37,7 +37,7 @@ public class TaxonomyResource {
 
 	
 	@Inject
-	private TopicsDAO dao;
+	private TopicsDAO topicsDao;
 
 	@Inject
 	private TaxonomiesDAO taxonomiesDao;
@@ -56,7 +56,7 @@ public class TaxonomyResource {
 		List<Taxonomy> taxonomies = result.asList(options);
 		 
 		for(Taxonomy taxonomy : taxonomies) {
-			 long topics = dao.createQuery().filter("taxonomyId", taxonomy.getId()).count();
+			 long topics = topicsDao.createQuery().filter("taxonomyId", taxonomy.getId()).count();
 			 taxonomy.setTopics(topics);
 		}
 		
@@ -96,8 +96,8 @@ public class TaxonomyResource {
 			 return Response.status(404).entity(msg).build();
 		 }
 		 
-		 Query<Topic> query = dao.createQuery().filter("taxonomyId", taxonomyid);
-		 long topics = dao.count(query);
+		 Query<Topic> query = topicsDao.createQuery().filter("taxonomyId", taxonomyid);
+		 long topics = topicsDao.count(query);
 		 taxonomy.setTopics(topics);
 		 
 		 return Response.status(200).entity(taxonomy).build();
@@ -125,7 +125,14 @@ public class TaxonomyResource {
 			 Message msg = new Message("Taxonomy " + taxonomyid + " failed to be deleted");
 			return Response.status(404).entity(msg).build();
 		 }
-			
+		
+		 Query<Topic> query = topicsDao.createQuery().filter("taxonomyId", taxonomyid);
+		 r = topicsDao.deleteByQuery(query);
+		 if(r.getN() == 0) {
+			 Message msg = new Message("Taxonomy " + taxonomyid + " topics failed to be deleted");
+			return Response.status(404).entity(msg).build();
+		 }
+		 
 		 return Response.status(204).entity(taxonomy).build();
 	 }
 	 
@@ -137,7 +144,7 @@ public class TaxonomyResource {
 		 try {
 			 FindOptions options = new FindOptions().skip((page-1)*nPerPage).limit(nPerPage);
 		 
-			 Query<Topic> query = dao.createQuery().filter("taxonomyId", taxonomyid);
+			 Query<Topic> query = topicsDao.createQuery().filter("taxonomyId", taxonomyid);
 			 query = query.order("topicId");
 			 
 			 if(q != null && !q.equals("")) {
@@ -147,7 +154,7 @@ public class TaxonomyResource {
 						 );
 			 }
 			 
-			 QueryResults<Topic> result = dao.find(query);
+			 QueryResults<Topic> result = topicsDao.find(query);
 		 
 			 long total = result.count();
 			 List<Topic> topics = result.asList(options);
@@ -175,7 +182,7 @@ public class TaxonomyResource {
 			 topic.setLabel(topic.getName() + " (" + topic.getTopicId() + ")");
 			 topic.setTaxonomyId(taxonomyid);
 			 
-			 dao.save(topic);
+			 topicsDao.save(topic);
  		
 			 return Response.status(201).entity(topic).build();
 		 }
@@ -193,7 +200,7 @@ public class TaxonomyResource {
 			 Topic newTopic) {
 		 
 		 try {
-			 Topic topic = dao.get(topicId, taxonomyid);
+			 Topic topic = topicsDao.get(topicId, taxonomyid);
 			 if(topic == null) {
 				 Message msg = new Message("Topic " + topicId + " not found");
 			 	return Response.status(404).entity(msg).build();	
@@ -215,30 +222,30 @@ public class TaxonomyResource {
 			 Topic newTopic) {
 		 
 		 try {
-			 Topic topic = dao.get(topicId, taxonomyid);
+			 Topic topic = topicsDao.get(topicId, taxonomyid);
 			 if(topic == null) {
 				 Message msg = new Message("Topic " + topicId + " not found");
 					return Response.status(404).entity(msg).build();
 			 }
 			 
 			 if(topicId.equals(newTopic.getTopicId())) {
-				 Query<Topic> query = dao.createQuery().filter("topicId", topicId).filter("taxonomyId", taxonomyid);
-				 UpdateOperations<Topic> ops = dao.createUpdateOperations()
+				 Query<Topic> query = topicsDao.createQuery().filter("topicId", topicId).filter("taxonomyId", taxonomyid);
+				 UpdateOperations<Topic> ops = topicsDao.createUpdateOperations()
 						 .set("name", newTopic.getName())
 						 .set("definition", newTopic.getDefinition());
 				 
-				 dao.update(query, ops);
+				 topicsDao.update(query, ops);
 				 
-				 topic = dao.get(topicId, taxonomyid);
+				 topic = topicsDao.get(topicId, taxonomyid);
 				 return Response.status(201).entity(topic).build();
 			 }
 			 else {
 				 newTopic.setId(taxonomyid + "#" + newTopic.getTopicId());
 				 newTopic.setLabel(topic.getName() + " (" + newTopic.getTopicId() + ")");
 				 newTopic.setTaxonomyId(taxonomyid);
-				 dao.save(newTopic);
+				 topicsDao.save(newTopic);
 				 
-				 dao.delete(topicId, taxonomyid);
+				 topicsDao.delete(topicId, taxonomyid);
 				 
 				 return Response.status(201).entity(newTopic).build();
 			 }
@@ -257,13 +264,13 @@ public class TaxonomyResource {
 			 @PathParam("topicid") String topicId) {
 
 		 	try {
-		 		Topic topic = dao.get(topicId, taxonomyid);
+		 		Topic topic = topicsDao.get(topicId, taxonomyid);
 				if(topic == null) {
 					Message msg = new Message("Topic " + topicId + " not found");
 					return Response.status(404).entity(msg).build();
 				}
 				
-				WriteResult r = dao.delete(topicId, taxonomyid);
+				WriteResult r = topicsDao.delete(topicId, taxonomyid);
 				if(r.getN() == 0) {
 					Message msg = new Message("Topic " + topicId + " failed to be deleted");
 					return Response.status(404).entity(msg).build();
