@@ -82,9 +82,9 @@ public class DocumentsResource {
 				return Response.status(400).entity(msg).build();
 			}
 			
+			String corpusIndex = corpus.getId();
+				
 			Schema schema = schemasDAO.get(corpus.getSchemaId());
-			
-			String corpusName = corpus.getName();
 			
 			Rule savedRule = dao.get(rule.getId());
 			if(savedRule == null) {
@@ -101,7 +101,7 @@ public class DocumentsResource {
 			String topicId = savedRule.getTopicId();
 			
 			DocumentPagedResponse response = new DocumentPagedResponse();
-			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusName);
+			Map<String, Object> counts = getCountAnnotations(rulesQuery, topicId, corpusIndex);
 			for(Entry<String, Object> count : counts.entrySet()) {
 				response.addAnnotation(count.getKey(), count.getValue());
 			}
@@ -127,7 +127,7 @@ public class DocumentsResource {
 				qb = rulesQuery;
 			}
 			
-			ElasticSearchResponse<Document> results = es.findDocuments(qb, corpusName, page, nPerPage, schema, hqb);	
+			ElasticSearchResponse<Document> results = es.findDocuments(qb, corpusIndex, page, nPerPage, schema, hqb);	
 			response.setEntries(results.getResults());
 			
 			response.setTotal(results.getFound());
@@ -143,24 +143,24 @@ public class DocumentsResource {
 		}
 	}
 	
-	private Map<String, Object> getCountAnnotations(QueryBuilder rulesQb, String topicId, String corpus) throws IOException {
+	private Map<String, Object> getCountAnnotations(QueryBuilder rulesQb, String topicId, String corpusIndex) throws IOException {
 		Map<String, Object> counts = new HashMap<String, Object>();
 		
-		long allDocuments = es.countDocuments(matchAllQuery(), corpus);
+		long allDocuments = es.countDocuments(matchAllQuery(), corpusIndex);
 		
-		long ruleMatches = es.countDocuments(rulesQb, corpus);
+		long ruleMatches = es.countDocuments(rulesQb, corpusIndex);
 		
 		QueryBuilder topicsQuery = getTopicQuery(topicId);
-		long topicMatches = es.countDocuments(topicsQuery, corpus);
+		long topicMatches = es.countDocuments(topicsQuery, corpusIndex);
 		
 		QueryBuilder ruleAndTopicQuery = getRulesAndTopicQuery(rulesQb, topicId);
-		long bothMatches = es.countDocuments(ruleAndTopicQuery, corpus);
+		long bothMatches = es.countDocuments(ruleAndTopicQuery, corpusIndex);
 		
 		QueryBuilder onlyRuleQuery = getRulesOnlyQuery(rulesQb, topicId);
-		long ruleOnlyMatches = es.countDocuments(onlyRuleQuery, corpus);
+		long ruleOnlyMatches = es.countDocuments(onlyRuleQuery, corpusIndex);
 		
 		QueryBuilder onlyTopicQuery = getTopicOnlyQuery(rulesQb, topicId);
-		long topicOnlyMatches = es.countDocuments(onlyTopicQuery, corpus);
+		long topicOnlyMatches = es.countDocuments(onlyTopicQuery, corpusIndex);
 		
 		counts.put("ruleMatches", ruleMatches);
 		counts.put("topicMatches", topicMatches);
@@ -239,10 +239,10 @@ public class DocumentsResource {
 	private QueryBuilder getTopicQuery(String topicId) {
 		
 		BoolQueryBuilder bqb = boolQuery();
-		bqb.must(termQuery("topics.id", topicId));
+		bqb.must(termQuery("topics.topicId", topicId));
 		bqb.must(termQuery("topics.exclude", false));
 		bqb.must(boolQuery()
-				.should(termQuery("topics.association", "why:direct"))
+				.should(termQuery("topics.association", "direct"))
 				.should(termQuery("topics.association", "userdefined")));
 		
 		QueryBuilder qb = nestedQuery("topics", bqb, ScoreMode.Total);

@@ -24,6 +24,7 @@ import org.iptc.extra.core.daos.CorporaDAO;
 import org.iptc.extra.core.daos.SchemasDAO;
 import org.iptc.extra.core.daos.TaxonomiesDAO;
 import org.iptc.extra.core.es.ElasticSearchClient;
+import org.iptc.extra.core.es.ElasticSearchResponse;
 import org.iptc.extra.core.types.Corpus;
 import org.iptc.extra.core.types.Schema;
 import org.iptc.extra.core.types.Taxonomy;
@@ -100,14 +101,24 @@ public class CorporaResource {
 				return Response.status(409).entity(msg).build();
 			}
 			else {
+				// set creation date
+				corpus.setCreatedAt(System.currentTimeMillis());
+				
 				Key<Corpus> createdCorpusKey = dao.save(corpus);
 				corpus.setId(createdCorpusKey.getId().toString());
 	    		
-				//boolean corporaIndexCreated = es.createCorporaIndex(corpus);
-				//if(corporaIndexCreated) {
-				//	Message msg = new Message("ElasticSearch index failed to be created for corpus: " + corpus.getId());
-				//	return Response.status(400).entity(msg).build();
-				//}
+				Schema schema = schemasDAO.get(corpus.getSchemaId());
+				if(schema == null) {
+					Message msg = new Message("Cannot create index for corpus " + corpus.getId()+ ". Schema " + corpus.getSchemaId() + " does not exist");
+					return Response.status(400).entity(msg).build();
+				}
+				corpus.setSchema(schema);
+				
+				boolean corporaIndexCreated = es.createCorpusIndex(corpus);
+				if(!corporaIndexCreated) {
+					Message msg = new Message("ElasticSearch index failed to be created for corpus: " + corpus.getId());
+					return Response.status(400).entity(msg).build();
+				}
 				
 	    		return Response.status(201).entity(corpus).build();
 			}
@@ -177,10 +188,44 @@ public class CorporaResource {
 		}
 		
 		dao.deleteById(corpusid);
+		es.deleteCorpusIndex(corpusid);
+		
 		return Response.status(204).entity(corpusid).build();
 	}
 	
-	@POST @Path("{corpusid}/document")
+	@GET @Path("{corpusid}/documents")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getDocuments(@PathParam("corpusid") String corpusid,
+			@DefaultValue("1") @QueryParam("page") int page,
+			@DefaultValue("20") @QueryParam("nPerPage") int nPerPage) {
+		
+		Corpus corpus = dao.get(corpusid);
+		if(corpus == null) {
+			Message msg = new Message("Corpus " + corpusid + " not found");
+			return Response.status(404).entity(msg).build();
+		}
+		
+		try {
+			ElasticSearchResponse<Document> documents = es.findDocuments(corpusid, page, nPerPage);
+			
+			PagedResponse<Document> response = new PagedResponse<Document>();
+			response.setEntries(documents.getResults());
+			response.setPage(page);
+			response.setnPerPage(nPerPage);
+			response.setTotal(documents.getFound());
+
+			return Response.ok(response).build();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			Message msg = new Message("Exception: " + e.getMessage());
+			return Response.status(404).entity(msg).build();
+		}
+	}
+	
+	@POST @Path("{corpusid}/documents")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response indexDocument(@PathParam("corpusid") String corpusid, Document document) {
