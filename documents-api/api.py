@@ -17,9 +17,6 @@ client = MongoClient('mongodb', 27017)
 mongodb = client.extra
 es = Elasticsearch(hosts = [{'host': 'elasticsearch', 'port': 9200}])
 
-languages = {'apa': 'german', 'reuters': 'english'}
-delimiters = {'apa': '/', 'reuters': '/'}
-
 app = Flask(__name__, static_url_path='')
 
 CORS(app, resources={'/api/*': {'origins': '*'}})
@@ -33,10 +30,8 @@ class Document(Resource):
         args = parser.parse_args()
 
         corpus_id = args['corpus']
-        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
 
-        document = es.get(index=corpus, id=document_id, doc_type='documents')
+        document = es.get(index=corpus_id, id=document_id, doc_type='documents')
         return {'document': document['_source']}
 
     def put(self, document_id):
@@ -53,8 +48,6 @@ class Document(Resource):
         association = args['association']
 
         corpus_id = args['corpus']
-        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
 
         if topic_id is None or topic_id == '':
             return {'exclude': 'false', 'msg': ' topic is unset for ' + document_id}
@@ -62,7 +55,7 @@ class Document(Resource):
         if exclude != 'true' and exclude != 'false':
             return {'exclude': 'false', 'msg': 'document ' + document_id + ' failed to be flagged for ' + topic_id}
 
-        document = es.get(index=corpus, id=document_id, doc_type='documents')
+        document = es.get(index=corpus_id, id=document_id, doc_type='documents')
         if document is None:
             return {'exclude': 'false', 'msg': 'article ' + document_id + ' does not exist. Failed to be flagged.'}
 
@@ -81,7 +74,7 @@ class Document(Resource):
                     topics.remove(topic)
 
             body = {'doc': {'topics': topics}}
-            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+            es.update(index=corpus_id, doc_type='documents', id=document_id, body=body)
         elif association == 'userdefined' and exclude == 'true':
             topics = document['_source']['topics']
             for topic in topics:
@@ -90,7 +83,7 @@ class Document(Resource):
                     break
 
             body = {'doc': {'topics': topics}}
-            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+            es.update(index=corpus_id, doc_type='documents', id=document_id, body=body)
         else:
             sbt = 'direct_topics' if (association is None or association == 'why:direct') else 'ancestor_topics'
             topics_subset = document['_source'][sbt]
@@ -99,7 +92,7 @@ class Document(Resource):
                     topic['exclude'] = exclude
 
             body = {'doc' : {'topics' : topics, sbt : topics_subset}}
-            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
+            es.update(index=corpus_id, doc_type='documents', id=document_id, body=body)
 
         return {'msg': 'document ' + document_id + ' is flagged as exclude:' + exclude + ' for ' + topic_id}
 
@@ -115,16 +108,14 @@ class DocumentFile(Resource):
         document_id = args['documentId']
 
         corpus_id = args['corpus']
-        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
 
-        article = es.get(index=corpus, id=document_id, doc_type='documents')
+        article = es.get(index=corpus_id, id=document_id, doc_type='documents')
         if article is None:
             return {'xml' : ''}
 
         filename = article['_source']['filename']
         response = {}
-        with open('xml/' + corpus + '/' + filename, 'r') as f:
+        with open('xml/' + corpus_id + '/' + filename, 'r') as f:
             xml_content = f.read()
             response['xml'] = xml_content
 
@@ -150,12 +141,10 @@ class Documents(Resource):
 
         corpus_id = args['corpus']
         corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
 
-        lang = languages[corpus]
-        delimiter = delimiters[corpus]
+        lang = corpus_obj['language']
 
-        search = search.index(corpus)
+        search = search.index(corpus_id)
         search = search.doc_type('documents')
 
         page = args['page'] if args['page'] is not None else 1
@@ -183,7 +172,7 @@ class Documents(Resource):
         topic_id = args['topic']
         if (topic_id is not None and topic_id is not '') and args['association'] is not None:
             must_query = [
-                {'term': {'topics.id': topic_id}},
+                {'term': {'topics.topicId': topic_id}},
                 {'term': {'topics.association': args['association']}}
             ]
 
@@ -224,7 +213,7 @@ class Documents(Resource):
                         break
             if (topic_id is not None and topic_id is not '') and args['association'] is not None:
                 for topic in document['topics']:
-                    if topic['id'] == topic_id and 'exclude' in topic and topic['exclude'] == 'true':
+                    if topic['topicId'] == topic_id and 'exclude' in topic and topic['exclude'] == 'true':
                         document['exclude'] = 'true'
                         break
             documents.append(document)
@@ -237,7 +226,7 @@ class Documents(Resource):
             'documents': documents,
             'from': (page - 1) * n_per_page,
             'to': page * n_per_page,
-            'delimiter':delimiter
+            'delimiter': '/'
         }
 
 
@@ -250,37 +239,41 @@ class Topics(Resource):
         args = parser.parse_args()
         corpus_id = args['corpus']
         corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
-
-        field = 'direct_topics'
-        if args['association'] is not None and args['association'] == 'why:ancestor':
-            field = 'ancestor_topics'
+        taxonomy_id = corpus_obj['taxonomyId']
 
         search = Search(using=es)
-        search = search.index(corpus)
+        search = search.index(corpus_id)
         search = search.doc_type('documents')
 
         search = search[0:0]
         aggregations = {
             'nested': {
-                'path': field
+                'path': 'topics'
             },
             'aggs': {
-                field+'.id': A('terms', field=field+'.id', size=1200, min_doc_count=1)
+                'topics.topicId': A('terms', field='topics.topicId', size=1200, min_doc_count=1)
             }
         }
-        search.aggs.bucket(field, aggregations)
+
+        search.aggs.bucket('topics', aggregations)
         response = search.execute()
 
         aggregations = response.aggregations
-        buckets = aggregations[field][field+'.id']['buckets']
+        buckets = aggregations['topics']['topics.topicId']['buckets']
 
         response = []
-        for bin in buckets:
-            id = bin['key']
-            result = es.get(index=corpus, id=id, doc_type='topics')
-            topic = result['_source']
-            topic['doc_count'] = bin['doc_count']
+        for bucket_bin in buckets:
+            topic_id = bucket_bin['key']
+            q = {'topicId': topic_id, 'taxonomyId': taxonomy_id}
+            topic = mongodb.topics.find_one(q)
+            if topic is None:
+                print('Topic ' + topic_id + ' does not exist in ' + taxonomy_id + ' taxonomy')
+                continue
+            topic.pop('_id')
+            topic.pop('className')
+            topic['doc_count'] = bucket_bin['doc_count']
+            id_parts = topic_id.split(':')
+            topic['search'] = topic['name'] + ' (' + id_parts[1] + ')'
             response.append(topic)
         return response
 
@@ -293,10 +286,11 @@ class Topic(Resource):
         args = parser.parse_args()
         corpus_id = args['corpus']
         corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
-
-        result = es.get(index=corpus, id=topic_id, doc_type='topics')
-        topic = result['_source']
+        taxonomy_id = corpus_obj['taxonomyId']
+        q = {'topicId': topic_id, 'taxonomyId': taxonomy_id}
+        topic = mongodb.topics.find_one(q)
+        topic.pop('_id')
+        topic.pop('className')
 
         return topic
 
@@ -310,16 +304,16 @@ class Topic(Resource):
 
         corpus_id = args['corpus']
         corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
+        taxonomy_id = corpus_obj['taxonomyId']
 
         document_id = args['document_id']
 
-        result = es.get(index=corpus, id=topic_id, doc_type='topics')
-        if result is None:
+        q = {'topicId': topic_id, 'taxonomyId': taxonomy_id}
+        new_topic = mongodb.topics.find_one(q)
+        if new_topic is None:
             return {'msg': 'topic ' + topic_id + ' does not exist. Failed to add user defined topic.'}
-        new_topic = result['_source']
 
-        documents = es.get(index=corpus, id=document_id, doc_type='documents')
+        documents = es.get(index=corpus_id, id=document_id, doc_type='documents')
         if documents is None:
             return {'msg': 'document ' + document_id + ' does not exist. Failed to add user defined topic.'}
 
@@ -329,11 +323,11 @@ class Topic(Resource):
         excluded = False
         ancestor = False
         for topic in topics:
-            if topic['id'] == new_topic['id']:
+            if topic['topicId'] == new_topic['topicId']:
                 if topic['exclude'] == 'true':
                     topic['exclude'] = 'false'
                     excluded = True
-                if topic['association'] == 'why:ancestor':
+                if topic['association'] == 'ancestor':
                     ancestor = True
                 exists = True
                 break
@@ -346,10 +340,10 @@ class Topic(Resource):
                 topics.append(new_topic)
 
             body = {'doc': {'topics': topics}}
-            es.update(index=corpus, doc_type='documents', id=document_id, body=body)
-            return {'msg': 'document ' + document_id + ' has been annotated with ' + new_topic['id']}
+            es.update(index=corpus_id, doc_type='documents', id=document_id, body=body)
+            return {'msg': 'document ' + document_id + ' has been annotated with ' + new_topic['topic']}
         else:
-            return {'msg': 'document ' + document_id + ' is already annotated with ' + new_topic['id']}
+            return {'msg': 'document ' + document_id + ' is already annotated with ' + new_topic['topic']}
 
 
 class Statistics(Resource):
@@ -361,11 +355,9 @@ class Statistics(Resource):
         args = parser.parse_args()
         field = args['field']
         corpus_id = args['corpus']
-        corpus_obj = mongodb.corpora.find_one({'_id': ObjectId(corpus_id)})
-        corpus = corpus_obj['name']
 
         search = Search(using=es)
-        search = search.index(corpus)
+        search = search.index(corpus_id)
         search = search.doc_type('documents')
 
         search = search[0:0]
@@ -485,7 +477,7 @@ class Section(Resource):
             section = es.get(index='sections', id=section_id, doc_type=corpus)
             section = section['_source']
 
-            return {'section': section, 'delimiter' : delimiters[corpus]}
+            return {'section': section, 'delimiter' : '/'}
 
 
 class SectionChildren(Resource):
@@ -537,7 +529,7 @@ class SectionChildren(Resource):
             'found': response.hits.total,
             'current': current,
             'sections' : sections,
-            'delimiter' : delimiters[corpus]
+            'delimiter' : '/'
         }
 
 
@@ -597,7 +589,7 @@ class Sections(Resource):
         for tree in trees:
             json_trees.append(tree.to_json())
 
-        return {'sections': json_trees, 'delimiter' : delimiters[corpus]}
+        return {'sections': json_trees, 'delimiter' : '/'}
 
 
 @app.errorhandler(404)

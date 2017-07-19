@@ -163,28 +163,28 @@ $('#search_start').click(function () {
                 for (var i = 0; i < json.documents.length; i++) {
                     tags_anc = '', tags_dir = '', slugline = '', tags_user = '', subtitle = '';
                     for (var k = 0; k < json.documents[i].topics.length; k++) {
-                        if (json.documents[i].topics[k].association === "why:ancestor") {
+                        if (json.documents[i].topics[k].association === "ancestor") {
                             if (json.documents[i].topics[k].exclude === "true") {
-                                tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                                tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="undo_tag" src="imgs/undo.png"></li>'
                             }
                             else {
-                                tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                                tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="delete_tag" src="imgs/delete.png"></li>'
                             }
                         }
-                        else if (json.documents[i].topics[k].association === "why:direct") {
+                        else if (json.documents[i].topics[k].association === "direct") {
                             if (json.documents[i].topics[k].exclude === "true") {
-                                tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                                tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="undo_tag" src="imgs/undo.png"></li>'
                             }
                             else {
-                                tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                                tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="delete_tag" src="imgs/delete.png"></li>'
                             }
                         }
                         else {
                             if (json.documents[i].topics[k].exclude === "true") {
-                                tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                                tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="undo_tag" src="imgs/undo.png"></li>'
                             }
                             else {
-                                tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                                tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="delete_tag" src="imgs/delete.png"></li>'
                             }
                         }
                     }
@@ -289,28 +289,28 @@ function parse_documents(page_num) {
             for (var i = 0; i < json.documents.length; i++) {
                 tags_anc = '', tags_dir = '', slugline = '', tags_user = '', subtitle = '';
                 for (var k = 0; k < json.documents[i].topics.length; k++) {
-                    if (json.documents[i].topics[k].association === "why:ancestor") {
+                    if (json.documents[i].topics[k].association === "ancestor") {
                         if (json.documents[i].topics[k].exclude === "true") {
-                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                            tags_anc = tags_anc + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_anc = tags_anc + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
-                    else if (json.documents[i].topics[k].association === "why:direct") {
+                    else if (json.documents[i].topics[k].association === "direct") {
                         if (json.documents[i].topics[k].exclude === "true") {
-                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                            tags_dir = tags_dir + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_dir = tags_dir + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
                     else {
                         if (json.documents[i].topics[k].exclude === "true") {
-                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="undo_tag" src="imgs/undo.png"></li>'
+                            tags_user = tags_user + '<li><a style="background-color: #de796d" href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="undo_tag" src="imgs/undo.png"></li>'
                         }
                         else {
-                            tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].id.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].id + '" class="delete_tag" src="imgs/delete.png"></li>'
+                            tags_user = tags_user + '<li><a href="' + json.documents[i].topics[k].url + '" target="_blank">' + json.documents[i].topics[k].name + ' (' + json.documents[i].topics[k].topicId.replace('medtop:', '') + ')</a><img data-parent_id="' + json.documents[i].id + '" data-association="' + json.documents[i].topics[k].association + '" data-topic_id="' + json.documents[i].topics[k].topicId + '" class="delete_tag" src="imgs/delete.png"></li>'
                         }
                     }
                 }
@@ -684,7 +684,7 @@ $("#tiles").on("click", ".topic_add", function (e) {
     e.stopPropagation();
     var corpus = $('.activelan').parent().attr('id');
     var options_article = {
-        url: "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=why:direct",
+        url: "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=direct",
         getValue: "search",
         minCharNumber: 2,
         list: {
@@ -719,11 +719,11 @@ $("#tiles").on("click", ".topic_add", function (e) {
 });
 $('.radio input').click(function () {
     var corpus = $('.activelan').parent().attr('id');
-    if ($(this).val() === "why:ancestor") {
-        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=why:ancestor";
+    if ($(this).val() === "ancestor") {
+        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=ancestor";
     }
     else {
-        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=why:direct";
+        options.url = "http://" + window.location.hostname + ":5000/api/topics?corpus=" + corpus + "&association=direct";
     }
     $("#topics_autocomplete").val("").easyAutocomplete(options);
 });
