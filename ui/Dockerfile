@@ -1,6 +1,6 @@
-FROM ubuntu:15.10
+FROM ubuntu:18.04
 
-MAINTAINER Manos Schinas <manosetro@iti.gr>
+MAINTAINER Brendan Quinn <mdirector@iptc.org>
 
 RUN apt-get update
 RUN apt-get -y upgrade
