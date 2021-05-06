@@ -2,5 +2,5 @@ elasticsearch==5.2.0
 elasticsearch-dsl==5.1.0
 flask>=1.0.0
 Flask-RESTful==0.3.7
-Flask-Cors==3.0.2
+Flask-Cors==3.0.9
 pymongo==3.1.1
